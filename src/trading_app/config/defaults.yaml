@@ -1,0 +1,4 @@
+symbol: FAKE
+short_window: 10
+long_window: 30
+n: 200

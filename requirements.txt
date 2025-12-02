@@ -1,0 +1,10 @@
+pandas>=2.0
+numpy>=1.27
+pydantic>=2.0
+requests>=2.31
+aiohttp>=3.9
+
+# Dev
+pytest>=7.0
+black>=24.0
+ruff>=0.20
