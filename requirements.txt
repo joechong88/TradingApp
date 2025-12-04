@@ -7,4 +7,16 @@ aiohttp>=3.9
 # Dev
 pytest>=7.0
 black>=24.0
-ruff>=0.20
+ruff>=0.10
+
+# Trading
+ib_insync==0.9.86
+python-dotenv==1.0.1
+plotly==5.24.1
+Flask==3.0.0
+PyYAML==6.0.2
+pytz==2024.1
+
+#Streamlit
+streamlit==1.39.0
+SQLAlchemy==2.0.31

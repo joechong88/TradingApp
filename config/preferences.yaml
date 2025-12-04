@@ -1,0 +1,28 @@
+chart:
+  theme: light
+  interval: 5min
+  timezone: US/Eastern
+  layout:
+    height: 700
+    width: 1200
+
+preferences:
+  risk_reward:
+    entry: 450.0
+    stop: 445.0
+    target: 460.0
+  levels:
+    - PDH
+    - PDL
+    - PMH
+    - PML
+  indicators:
+    - EMA20
+    - EMA50
+    - VWAP
+
+tradingview:
+  enabled: true
+  symbol: NASDAQ:MSFT
+  interval: D
+  theme: light
