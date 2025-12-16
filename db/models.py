@@ -2,6 +2,8 @@ import os
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
+from typing import List, Optional, Dict, Any
+import pandas as pd
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///trading_app.db")
@@ -17,7 +19,7 @@ class Trade(Base):
     strategy = Column(String)  # Long, Short, Call, Put
     units = Column(Float)
     strikeprice = Column(Float, nullable=True)  # for options
-    expiry_dt = Column(DateTime, nullable=True)  # for options
+    expiry_dt = Column(String, nullable=True)  # for options, store as string YYYYMMDD
     entry_price = Column(Float)
     expected_rr = Column(Float)
     entry_dt = Column(DateTime)   # store in UTC; convert to ET on display
@@ -34,3 +36,14 @@ class Trade(Base):
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+
+def clear_db_schema():
+    """ Drop all tables and re-create them """
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+
+def clear_db_rows():
+    """Delete all rows from the trades table (keep schema)."""
+    with SessionLocal() as db:
+        db.query(Trade).delete()
+        db.commit()
