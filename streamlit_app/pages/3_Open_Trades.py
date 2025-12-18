@@ -10,7 +10,7 @@ except RuntimeError:
 import logging  # for logging purposes
 import streamlit as st
 import pandas as pd
-from datetime import datetime, UTC
+from datetime import datetime, date, UTC
 import pytz
 import time
 
@@ -28,7 +28,8 @@ logger.debug("Starting Open Trades page")
 qm = get_qm()
 # qm.cancel_all()  # optional: clear previous subs on entering Open Trades
 
-@st.cache_data(ttl=60)
+compact_mode = st.sidebar.toggle("Compact Mode", value=True)
+
 def fetch_trades():
     with SessionLocal() as db:  # type: Session
         trades = db.query(Trade).order_by(Trade.id.desc()).all()
@@ -67,6 +68,104 @@ def load_open_trades(trades_df: pd.DataFrame) -> pd.DataFrame:
         c for c in open_df.columns if c not in ["id","symbol","strategy","strikeprice", "expiry_dt", "days_to_expiry", "units", "entry_price", "option_last","stock_last","pnl","days_to_expiry"]
     ]
     return open_df[cols_order]
+
+def update_expiry_in_db(trade_id: int, new_expiry: str):
+    """
+    Update the expiry_dt field for a given trade.
+    new_expiry must be a string in YYYYMMDD format.
+    """
+    with SessionLocal() as db:
+        trade = db.get(Trade, trade_id)
+        if trade is None:
+            return False  # or raise an exception if you prefer
+
+        trade.expiry_dt = new_expiry
+        db.commit()
+        return True
+
+
+def render_trade_table(df: pd.DataFrame, styled_df, compact_mode: bool = False):
+    """
+    Renders two coordinated tables:
+    1. A visually formatted HTML table (Styler colors, compact mode)
+    2. An interactive st.data_editor table (renamed headers, sortable, resizable)
+
+    Parameters:
+        df (pd.DataFrame): The raw DataFrame (renamed columns)
+        styled_df (pd.io.formats.style.Styler): The styled version of df
+        compact_mode (bool): Whether to apply compact CSS
+    """
+
+    # --- 1. Render the visual table (Styler + Compact Mode) ---
+    #html = styled_df.to_html()
+    # No longer used
+
+    # --- 2. Render the interactive table (no Styler) ---
+    st.data_editor(
+        styled_df,
+        use_container_width=True,
+        hide_index=True,
+        disabled=True,
+        column_config={
+            "Edit": st.column_config.TextColumn(
+                "Edit",
+                help="Click to edit expiry",
+                disabled=False
+            ),
+            "Ticker": "Ticker",
+            "Option Price (Last)": st.column_config.NumberColumn("Option Price (Last)", format="$%0.2f"),
+            "Stock Price (Last)": st.column_config.NumberColumn("Stock Price (Last)", format="$%0.2f"),
+            "Entry Price": st.column_config.NumberColumn("Entry Price", format="$%0.2f"),
+            "Entry Commissions": st.column_config.NumberColumn("Entry Commissions", format="$%0.2f"),
+            "Strike Price": st.column_config.NumberColumn("Strike Price", format="$%0.2f", help="Edit to update strike price"),
+            "Expiry Date": "Expiry Date",
+            "P&L": st.column_config.NumberColumn("P&L", format="$%0.2f"),
+            "Entry Date/Time": "Entry Date/Time",
+            "Exit Price": st.column_config.NumberColumn("Exit Price", format="$%0.2f"),
+            "Exit Commissions": st.column_config.NumberColumn("Exit Commissions", format="$%0.2f"),
+            "Exit Date/Time": "Exit Date/Time",
+            "Strategy": "Strategy",
+            "Notes": "Notes",
+            "Position": st.column_config.NumberColumn("Position", format="%0.2f"),
+            "Live Price": st.column_config.NumberColumn("Live Price", format="$%0.2f"),
+            "Opt Bid": st.column_config.NumberColumn("Opt Bid", format="$%0.2f"),
+            "Opt Ask": st.column_config.NumberColumn("Opt Ask", format="$%0.2f"),
+            "Stock Bid": st.column_config.NumberColumn("Stock Bid", format="$%0.2f"),
+            "Stock Ask": st.column_config.NumberColumn("Stock Ask", format="$%0.2f"),
+            "ITM/OTM": "ITM/OTM",
+            "Days to Expiry": st.column_config.NumberColumn("Days to Expiry", format="%d"),
+        }
+    )
+
+    # --- 3. Add Edit button for each open trade
+    for idx, row in df.iterrows():
+        col1, col2, col3 = st.columns([2,2,1])
+        
+        col1.write(row["symbol"])
+        col2.write(row["expiry_dt"])
+        if col3.button("Edit", key=f"edit_expiry_{row['id']}"):
+            update_expiry_dialog(row)
+
+@st.dialog("Update Expiry Date")
+def update_expiry_dialog(row):
+    # Convert existing YYYYMMDD string → Python date
+    raw_expiry = row["expiry_dt"]
+    if raw_expiry is None:
+        current = date.today()
+    else:
+        current = datetime.strptime(row["expiry_dt"], "%Y%m%d").date()
+
+    new_date = st.date_input(
+        "New Expiry Date",
+        value=current,
+        key=f"expiry_input_{row['id']}"
+    )
+
+    if st.button("Save"):
+        new_expiry_str = new_date.strftime("%Y%m%d")
+        update_expiry_in_db(row["id"], new_expiry_str)
+        st.cache_data.clear()
+        st.rerun()
 
 ### Main function starts here ###
 # Create 2 columns for the Heading
@@ -118,35 +217,7 @@ else:
     ).map(pnl_color, subset="pnl").map(expiry_color, subset="days_to_expiry")
     logger.debug("open_df styling took %.2f seconds", time.time()-start)
 
-    # Rename the header
-    st.dataframe(
-        styled_df, 
-        use_container_width=True,
-        column_config={
-            "symbol": "Ticker",
-            "option_last": st.column_config.NumberColumn("Option Price (Last)", format="$%0.2f"),
-            "stock_last": st.column_config.NumberColumn("Stock Price (Last)", format="$%0.2f"),
-            "entry_price": st.column_config.NumberColumn("Entry Price", format="$%0.2f"),
-            "entry_commissions": st.column_config.NumberColumn("Entry Commissions", format="$%0.2f"),
-            "strikeprice": st.column_config.NumberColumn("Strike Price", format="$%0.2f"),
-            "pnl": st.column_config.NumberColumn("P&L", format="$%0.2f"),
-            "entry_dt": "Entry Date/Time",
-            "exit_price": st.column_config.NumberColumn("Exit Price", format="$%0.2f"),
-            "exit_commissions": st.column_config.NumberColumn("Exit Commissions", format="$%0.2f"),
-            "exit_dt": "Exit Date/Time",
-            "strategy": "Strategy",
-            "notes": "Notes",
-            "is_open": None,
-            "units": st.column_config.NumberColumn("Position", format="%0.2f"),
-            "live_price": st.column_config.NumberColumn("Live Price", format="$%0.2f"),
-            "option_bid": st.column_config.NumberColumn("Opt Bid", format="$%0.2f"),
-            "option_ask": st.column_config.NumberColumn("Opt Ask", format="$%0.2f"),
-            "stock_bid": st.column_config.NumberColumn("Stock Bid", format="$%0.2f"),
-            "stock_ask": st.column_config.NumberColumn("Stock Ask", format="$%0.2f"),
-            "itm_status": "ITM/OTM",
-            "days_to_expiry": st.column_config.NumberColumn("Days to Expiry", format="%d")
-        }
-    )
+    render_trade_table(open_df, styled_df, compact_mode)
 
     st.divider()
     st.subheader("Close an open trade")
