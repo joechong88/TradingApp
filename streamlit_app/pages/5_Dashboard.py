@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import calendar
 from datetime import datetime, date
+import pytz
 from sqlalchemy.orm import Session
 from db.models import SessionLocal, Trade
 from utils.trades import trades_to_df
@@ -104,6 +105,7 @@ def build_calendar_matrix(year, month, pnl_map, count_map, preview_map):
     month_days = cal.monthdatescalendar(year, month)
 
     trading_days = get_month_schedule(year, month)
+    today_et = datetime.now(pytz.timezone("US/Eastern")).date()
 
     matrix = []
     date_matrix = []    # Parallel matrix of actual dates
@@ -124,6 +126,9 @@ def build_calendar_matrix(year, month, pnl_map, count_map, preview_map):
             # Build inner content
             if not is_trading_day:
                 extra_html = "<div>Market Closed</div>"
+            elif day > today_et and pnl is None:
+                #Future trading day with no trades closed yet
+                extra_html = "<div style='color:#1e90ff'>FUTURE</div>"
             elif pnl is None:
                 extra_html = "<div>No Trades</div>"
             else:

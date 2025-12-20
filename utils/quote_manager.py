@@ -15,6 +15,7 @@ import pytz
 import math
 
 from threading import Lock
+import concurrent.futures
 from datetime import datetime, timedelta
 from utils.ibkr import connect_ib
 from utils.logger import get_logger
@@ -36,8 +37,53 @@ class QuoteManager:
         self.tickers = {}
         self.lock = Lock()
         self.current_session = None
+        self.version = 0
         logger.info(f"[QuoteManager.__init__] self.ib id={id(self.ib)}")
 
+    # ---------------------------------------------------------
+    # ✅ Hard Reset (for Streamlit Refresh Button)
+    # ---------------------------------------------------------
+    def reset(self):
+        """
+        Fully reset the QuoteManager:
+        - Cancel all IBKR subscriptions
+        - Clear cached tickers
+        - Clear internal quote cache
+        - Reconnect IBKR cleanly
+        - Increment version to invalidate all cached quotes
+        """
+        logger.info("[QuoteManager.reset] Resetting quote manager...")
+
+        # Cancel all subscriptions
+        try:
+            for key, ticker in list(self.tickers.items()):
+                try:
+                    self.ib.cancelMktData(ticker)
+                except Exception as e:
+                    logger.warning(f"[reset] Failed to cancel ticker {key}: {e}")
+        except Exception as e:
+            logger.error(f"[reset] Error during cancel_all: {e}")
+
+        # Clear internal state
+        self.tickers = {}
+        self.cache = {}
+        self.current_session = None
+
+        # Disconnect IBKR
+        try:
+            if self.ib is not None:
+                self.ib.disconnect()
+        except Exception:
+            pass
+
+        # Force new IB connection
+        self.ib = None
+        self.ensure_connected()
+
+        # Increment version to invalidate all cached quotes
+        self.version += 1
+
+        logger.info(f"[QuoteManager.reset] Completed. version={self.version}")
 
     # ---------------------------------------------------------
     # ✅ Auto‑Reconnect (critical for Streamlit)
@@ -174,10 +220,32 @@ class QuoteManager:
         return Stock(symbol, exchange, currency)
 
     # ---------------------------------------------------------
+    # ✅ Same , time-out protected version of qualify
+    # ---------------------------------------------------------
+    def safe_qualify(self, contract, timeout=2.0):
+        """
+        Run qualifyContracts() in a separate thread with a hard timeout.
+        This avoids Streamlit + ib_insync event loop deadlocks.
+        """
+        def _run():
+            return self.ib.qualifyContracts(contract)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_run)
+            try:
+                return future.result(timeout=timeout)
+            except concurrent.futures.TimeoutError:
+                logger.warning(f"[safe_qualify] TIMEOUT qualifying contract: {contract}")
+                return None
+            except Exception as e:
+                logger.error(f"[safe_qualify] qualifyContracts failed: {e}")
+                return None
+
+    # ---------------------------------------------------------
     # ✅ Subscribe (with contract validation)
     # ---------------------------------------------------------
     def subscribe(self, symbol, expiry=None, strike=None, right=None):
-        key = (symbol, expiry, strike, right)
+        key = (symbol, expiry, strike, right, self.version)
 
         session = self.current_session
 
@@ -217,7 +285,7 @@ class QuoteManager:
             # only qualify for options
             if expiry and strike and right:
                 logger.info(f"[subscribe] calling qualifyContracts for {key}")
-                qualified = self.ib.qualifyContracts(contract)
+                qualified = self.safe_qualify(contract)
                 logger.info(f"[subscribe] qualified={qualified} for {key}")
                 if not qualified:
                     logger.error(f"[subscribe] could NOT qualify contract for {key}")
@@ -227,7 +295,7 @@ class QuoteManager:
                 logger.info(f"[subscribe] using qualified contract={contract} for {key}")
             else:
                 logger.info(f"[subscribe] qualifying stock contract for {key}")
-                qualified = self.ib.qualifyContracts(contract)
+                qualified = self.safe_qualify(contract)
                 logger.info(f"[subscribe] stock qualified={qualified} for {key}")
                 if qualified:
                     contract = qualified[0]
@@ -260,6 +328,7 @@ class QuoteManager:
     # ---------------------------------------------------------
     def safe_get_quote(self, *args, **kwargs):
         try:
+            kwargs["version"] = self.version
             return self.get_quote(*args, **kwargs)
         except Exception as e:
             logger.exception(f"[safe_get_quote] error: {e}")
@@ -276,7 +345,7 @@ class QuoteManager:
             }
 
     def get_quote(self, symbol, exchange="SMART", currency="USD",
-                  expiry=None, strike=None, right=None, timeout=2.5):
+                  expiry=None, strike=None, right=None, timeout=2.5, version=0):
         logger.info(f"[get_quote] START symbol={symbol}, expiry={expiry}, strike={strike}, right={right}")
         self.ensure_connected()
         logger.info(f"[get_quote] ensure_connected OK for {symbol}")
@@ -329,7 +398,7 @@ class QuoteManager:
                 )
                 break
 
-            self.ib.sleep(0.1)
+            self.ib.sleep(0.05)
 
         mg = ticker.modelGreeks
         synthetic_last = self.compute_last(ticker, session)

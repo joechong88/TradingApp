@@ -62,17 +62,30 @@ def safe_option_price(opt_quote: dict, trade) -> float | None:
         return trade.exit_price
     return trade.entry_price
 
-def trades_to_df(trades: List[Trade], live: bool = True) -> pd.DataFrame:
+# Utility function to built the trade's label to be populated in the Close Trade selection box  
+def build_trade_label(row):
+    # Base: symbol + strategy
+    label = f"{row['symbol']} — {row['strategy']}"
+
+    # If it's an option, append expiry + strike
+    if row.get("expiry_dt") and row.get("strikeprice"):
+        # Determine the right (C or P) based on strategy
+        strategy_lower = row["strategy"].lower()
+        right = "P" if strategy_lower.startswith("csp") else "C"
+
+        expiry = row["expiry_dt"]
+        strike = row["strikeprice"]
+        label = f"{row['symbol']} {expiry} {strike}{right} — {row['strategy']}"
+
+    return label
+
+def trades_to_df(trades: List[Trade], live: bool = True, qm=None) -> pd.DataFrame:
     """
     Convert a list of Trade objects into a Pandas DataFrame.
     - live=True: fetch IBKR live quotes for open trades.
     - live=False: skip IBKR calls, use only stored DB values.
     Ensures all expected columns exist, even if trades is empty.
     """
-    if live:
-        qm = get_qm()
-    else:
-        qm = None
     rows = []
     for t in trades:
         # Default values

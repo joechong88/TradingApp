@@ -16,19 +16,28 @@ import time
 
 from sqlalchemy.orm import Session
 from db.models import SessionLocal, Trade
-from utils.trades import calculate_pnl, trades_to_df, get_qm
+from utils.trades import calculate_pnl, trades_to_df, get_qm, build_trade_label
 from utils.market_clock import show_market_clock
 from utils.formatters import format_currency, format_pnl, format_datetime, pnl_color, expiry_color
 from utils.logger import get_logger
+from utils.quote_manager import QuoteManager
 
 # --- Initiate logging
 logger = get_logger(__name__)
 logger.debug("Starting Open Trades page")
 
-qm = get_qm()
-# qm.cancel_all()  # optional: clear previous subs on entering Open Trades
+# --- Initialize QuoteManager
+if "qm" not in st.session_state:
+    st.session_state.qm = QuoteManager()
 
 compact_mode = st.sidebar.toggle("Compact Mode", value=True)
+
+def get_qm(force_new=False):
+    global _qm
+    if force_new or _qm is None:
+        _qm = QuoteManager()
+    
+    return _qm
 
 def fetch_trades():
     with SessionLocal() as db:  # type: Session
@@ -41,7 +50,7 @@ if "exit_time" not in st.session_state:
     st.session_state.exit_time = "16:00:00"
 
 # --- Utility: Load and preprocess open trades ---
-@st.cache_data(ttl=60)   # cache for 60 seconds
+#@st.cache_data(ttl=60)   # cache for 60 seconds
 def load_open_trades(trades_df: pd.DataFrame) -> pd.DataFrame:
     if trades_df.empty:
         return pd.DataFrame()
@@ -63,12 +72,6 @@ def load_open_trades(trades_df: pd.DataFrame) -> pd.DataFrame:
     today_et = pd.Timestamp(datetime.now(eastern).date())
     open_df["days_to_expiry"] = (open_df["expiry_date"] - today_et).dt.days.clip(lower=0)
 
-    # Re-order columns
-    cols_order = ["id","symbol","strategy","strikeprice", "expiry_dt", "days_to_expiry", "units", "pnl", "entry_price", "option_last","stock_last"] + [
-        c for c in open_df.columns if c not in ["id","symbol","strategy","strikeprice", "expiry_dt", "days_to_expiry", "units", "entry_price", "option_last","stock_last","pnl","days_to_expiry"]
-    ]
-    return open_df[cols_order]
-
 def update_expiry_in_db(trade_id: int, new_expiry: str):
     """
     Update the expiry_dt field for a given trade.
@@ -83,8 +86,7 @@ def update_expiry_in_db(trade_id: int, new_expiry: str):
         db.commit()
         return True
 
-
-def render_trade_table(df: pd.DataFrame, styled_df, compact_mode: bool = False):
+def render_trade_table(styled_df, compact_mode: bool = False):
     """
     Renders two coordinated tables:
     1. A visually formatted HTML table (Styler colors, compact mode)
@@ -95,12 +97,7 @@ def render_trade_table(df: pd.DataFrame, styled_df, compact_mode: bool = False):
         styled_df (pd.io.formats.style.Styler): The styled version of df
         compact_mode (bool): Whether to apply compact CSS
     """
-
-    # --- 1. Render the visual table (Styler + Compact Mode) ---
-    #html = styled_df.to_html()
-    # No longer used
-
-    # --- 2. Render the interactive table (no Styler) ---
+    # --- 1. Render the interactive table (no Styler) ---
     st.data_editor(
         styled_df,
         use_container_width=True,
@@ -112,39 +109,38 @@ def render_trade_table(df: pd.DataFrame, styled_df, compact_mode: bool = False):
                 help="Click to edit expiry",
                 disabled=False
             ),
-            "Ticker": "Ticker",
-            "Option Price (Last)": st.column_config.NumberColumn("Option Price (Last)", format="$%0.2f"),
-            "Stock Price (Last)": st.column_config.NumberColumn("Stock Price (Last)", format="$%0.2f"),
-            "Entry Price": st.column_config.NumberColumn("Entry Price", format="$%0.2f"),
-            "Entry Commissions": st.column_config.NumberColumn("Entry Commissions", format="$%0.2f"),
-            "Strike Price": st.column_config.NumberColumn("Strike Price", format="$%0.2f", help="Edit to update strike price"),
-            "Expiry Date": "Expiry Date",
-            "P&L": st.column_config.NumberColumn("P&L", format="$%0.2f"),
-            "Entry Date/Time": "Entry Date/Time",
-            "Exit Price": st.column_config.NumberColumn("Exit Price", format="$%0.2f"),
-            "Exit Commissions": st.column_config.NumberColumn("Exit Commissions", format="$%0.2f"),
-            "Exit Date/Time": "Exit Date/Time",
-            "Strategy": "Strategy",
-            "Notes": "Notes",
-            "Position": st.column_config.NumberColumn("Position", format="%0.2f"),
-            "Live Price": st.column_config.NumberColumn("Live Price", format="$%0.2f"),
-            "Opt Bid": st.column_config.NumberColumn("Opt Bid", format="$%0.2f"),
-            "Opt Ask": st.column_config.NumberColumn("Opt Ask", format="$%0.2f"),
-            "Stock Bid": st.column_config.NumberColumn("Stock Bid", format="$%0.2f"),
-            "Stock Ask": st.column_config.NumberColumn("Stock Ask", format="$%0.2f"),
-            "ITM/OTM": "ITM/OTM",
-            "Days to Expiry": st.column_config.NumberColumn("Days to Expiry", format="%d"),
+            "trade_desc": "Trade Details",
+            "option_last": st.column_config.NumberColumn("Option Price (Last)", format="$%0.2f"),
+            "stock_last": st.column_config.NumberColumn("Stock Price (Last)", format="$%0.2f"),
+            "entry_price": st.column_config.NumberColumn("Entry Price", format="$%0.2f"),
+            "entry_commissions": st.column_config.NumberColumn("Entry Commissions", format="$%0.2f"),
+            "pnl": st.column_config.NumberColumn("P&L", format="$%0.2f"),
+            "entry_dt": "Entry Date/Time",
+            "exit_price": st.column_config.NumberColumn("Exit Price", format="$%0.2f"),
+            "exit_commissions": st.column_config.NumberColumn("Exit Commissions", format="$%0.2f"),
+            "exit_dt": "Exit Date/Time",
+            "strategy": "Strategy",
+            "notes": "Notes",
+            "units": st.column_config.NumberColumn("units", format="%0.2f"),
+            "live_price": st.column_config.NumberColumn("Live Price", format="$%0.2f"),
+            "option_bid": st.column_config.NumberColumn("Opt Bid", format="$%0.2f"),
+            "option_ask": st.column_config.NumberColumn("Opt Ask", format="$%0.2f"),
+            "stock_bid": st.column_config.NumberColumn("Stock Bid", format="$%0.2f"),
+            "stock_ask": st.column_config.NumberColumn("Stock Ask", format="$%0.2f"),
+            "itm_status": "ITM/OTM",
+            "days_to_expiry": st.column_config.NumberColumn("Days to Expiry", format="%d"),
         }
     )
 
-    # --- 3. Add Edit button for each open trade
-    for idx, row in df.iterrows():
-        col1, col2, col3 = st.columns([2,2,1])
-        
-        col1.write(row["symbol"])
-        col2.write(row["expiry_dt"])
-        if col3.button("Edit", key=f"edit_expiry_{row['id']}"):
-            update_expiry_dialog(row)
+    # --- 3. Add Edit button for each open trade - TEMPORARILY REMOVE THIS FUNCTION
+    # --- Use DBBrowser on Windows app to do data patching
+    #for idx, row in df.iterrows():
+    #    col1, col2, col3 = st.columns([2,2,1])
+    #    
+    #    col1.write(row["symbol"])
+    #    col2.write(row["expiry_dt"])
+    #    if col3.button("Edit", key=f"edit_expiry_{row['id']}"):
+    #        update_expiry_dialog(row)
 
 @st.dialog("Update Expiry Date")
 def update_expiry_dialog(row):
@@ -176,15 +172,27 @@ with col2:
     # display the clock banner
     show_market_clock(mode="static")
 
+if "refresh_nonce" not in st.session_state:
+    st.session_state.refresh_nonce = 0
+
+# Refresh button
+if st.button("🔄 Refresh Prices"):
+    st.session_state.qm.reset()     # fully reset IBKR and cache
+    st.cache_data.clear()
+    st.rerun()
+
 # time the execution
 start = time.time()
 logger.debug("fetch_trades() INITIATED")
 trades = fetch_trades()
 logger.debug("fetch_trades() took %.2f seconds", time.time()-start)
 
+# 5. Convert to DataFrame using the refreshed QM
 start = time.time()
 logger.debug("trades_to_df() INITIATED")
-df = trades_to_df(trades, live=True)   # this function will handle all the calculations and retrieval of the right data for stocks and options
+df = trades_to_df(trades, live=True, qm=st.session_state.qm)   # this function will handle all the calculations and retrieval of the right data for stocks and options
+df["trade_desc"] = df.apply(build_trade_label, axis=1) # apply the appropriate labels for closing trades later
+
 logger.debug("trades_to_df() took %.2f seconds", time.time()-start)
 
 if df.empty:
@@ -201,27 +209,59 @@ if open_df.empty:
     st.info("No open trades.")
 else:
     # Apply styling to fields
+    # --- 1. Apply the hidden column
+    df_full = open_df.copy()
+    hidden_cols = ["symbol", "strategy", "strikeprice", "expiry_dt"]
+    df_view = df_full.drop(columns=hidden_cols)
+
+    # --- 2. Re-order the columns, this must be done at the df, not the styler
+    desired_order = [
+        "trade_desc",
+        "units",
+        "pnl",
+        "itm_status",
+        "days_to_expiry",
+        "stock_last",
+        "option_last",
+        "entry_price",
+        "entry_commissions",
+        "entry_dt",
+        "exit_price",
+        "exit_commissions",
+        "exit_dt",
+        "notes",
+        "live_price",
+        "option_bid",
+        "option_ask",
+        "stock_bid",
+        "stock_ask"
+    ]
+    df_view2 = df_view[desired_order]
+
+    # --- 3. Styled them accordingly, before sending to rendering the table
     start = time.time()
     logger.debug("open_df styling INITIATED")
-    styled_df = open_df.style.format({
+    styled_df = df_view2.style.format({
         "option_last": "${:,.2f}",
         "stock_last": "${:,.2f}",
         "entry_price": "${:,.2f}",
-        "strikeprice": "${:,.2f}",
         "entry_commissions": "${:,.2f}",
         "pnl": "${:,.2f}",
         "days_to_expiry": "{:,.0f}"
     }).set_properties(
-        subset=["option_last", "stock_last", "entry_price", "strikeprice", "entry_commissions", "pnl"],
+        subset=["option_last", "stock_last", "entry_price", "entry_commissions", "pnl"],
         **{"text-align": "right"}
     ).map(pnl_color, subset="pnl").map(expiry_color, subset="days_to_expiry")
     logger.debug("open_df styling took %.2f seconds", time.time()-start)
-
-    render_trade_table(open_df, styled_df, compact_mode)
+    render_trade_table(styled_df, compact_mode)
 
     st.divider()
     st.subheader("Close an open trade")
-    sel_id = st.selectbox("Select trade ID to close", open_df["id"].tolist())
+    
+    # Use the label in your selectbox, but return the id
+    trade_map = dict(zip(open_df["trade_desc"], open_df["id"]))
+    sel_label = st.selectbox("Select trade ID to close", list(trade_map.keys()))
+    sel_id = trade_map[sel_label]
     exit_price = st.number_input("Exit price", min_value=0.0, step=0.01)
     exit_commissions = st.number_input("Exit Commissions", min_value=0.0, step=0.01)
 

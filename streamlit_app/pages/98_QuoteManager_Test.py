@@ -38,8 +38,15 @@ This helps confirm whether QuoteManager is receiving the same data stream as you
 # ---------------------------------------------------------
 # ✅ Initialize QuoteManager
 # ---------------------------------------------------------
-qm = QuoteManager()
-st.write(f"QuoteManager IB id: {id(qm.ib)}")
+# ---------------------------------------------------------
+# Initialize persistent QuoteManager (same pattern as dashboard)
+# ---------------------------------------------------------
+if "qm" not in st.session_state:
+    st.session_state.qm = QuoteManager()
+
+qm = st.session_state.qm
+st.write(f"QuoteManager IB id: {id(qm.ib)}  |  version={qm.version}")
+st.info(f"QM version={qm.version}, tickers={len(qm.tickers)}, cache={len(qm.cache)}")
 
 # ---------------------------------------------------------
 # ✅ Helper: run raw IBKR test (like test_data.py)
@@ -112,6 +119,7 @@ tests = [
 
 run_button = st.button("Run Full Comparison")
 run_button_2 = st.button("Run Raw Test using QuoteManager.ib")
+reset_button = st.button("Reset QuoteManager (Test)")
 
 if run_button:
     for symbol, expiry, strike, right in tests:
@@ -136,7 +144,8 @@ if run_button:
 
         st.json({
             "quote": qm_quote,
-            "time_taken": qm_time
+            "time_taken": qm_time,
+            "qm_version": qm.version
         })
 
         # ---------------------------------------------------------
@@ -182,3 +191,8 @@ if run_button_2:
             f"tick {i}: last={ticker.last}, bid={ticker.bid}, "
             f"ask={ticker.ask}, close={ticker.close}"
         )
+
+if reset_button:
+    qm.reset()
+    st.success(f"QuoteManager reset. New version={qm.version}")
+    st.rerun()

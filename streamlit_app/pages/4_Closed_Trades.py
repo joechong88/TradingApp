@@ -16,7 +16,7 @@ import time
 
 from sqlalchemy.orm import Session
 from db.models import SessionLocal, Trade
-from utils.trades import calculate_pnl, trades_to_df
+from utils.trades import calculate_pnl, trades_to_df, build_trade_label
 from utils.market_clock import show_market_clock
 from utils.formatters import format_currency, format_pnl, format_datetime, pnl_color, expiry_color
 from utils.logger import get_logger
@@ -79,6 +79,7 @@ logger.debug("fetch_trades() took %.2f seconds", time.time()-start)
 start = time.time()
 logger.debug("trades_to_df() INITIATED")
 df = trades_to_df(trades, live=False)   # this function will handle all the calculations and retrieval of the right data for stocks and options
+df["trade_desc"] = df.apply(build_trade_label, axis=1) # apply the appropriate labels for closing trades later
 logger.debug("trades_to_df() took %.2f seconds", time.time()-start)
 
 if df.empty:
@@ -96,18 +97,39 @@ if closed_df.empty:
 else:
     start = time.time()
     logger.debug("closed_df styling INITIATED")
+
     # Apply styling to fields
-    styled_df = closed_df.style.format({
-        "option_last": "${:,.2f}",
-        "stock_last": "${:,.2f}",
+    # --- 1. Apply the hidden column
+    df_full = closed_df.copy()
+    hidden_cols = [
+        "symbol", "strategy", "strikeprice", "expiry_dt", "stock_last", "option_last",
+        "live_price", "option_bid", "option_ask", "stock_bid", "stock_ask"
+    ]
+    df_view = df_full.drop(columns=hidden_cols)
+
+    # --- 2. Re-order the columns, this must be done at the df, not the styler
+    desired_order = [
+        "trade_desc",
+        "units",
+        "pnl",
+        "entry_price",
+        "entry_commissions",
+        "entry_dt",
+        "exit_price",
+        "exit_commissions",
+        "exit_dt",
+        "notes"
+    ]
+    df_view2 = df_view[desired_order]
+
+    styled_df = df_view2.style.format({
         "entry_price": "${:,.2f}",
         "entry_commissions": "${:,.2f}",
-        "strikeprice": "${:,.2f}",
         "pnl": "${:,.2f}",
         "exit_price": "${:,.2f}",
         "exit_commissions": "${:,.2f}",
     }).set_properties(
-        subset=["option_last", "stock_last", "entry_price", "entry_commissions", "exit_price", "exit_commissions", "strikeprice", "pnl"],
+        subset=["entry_price", "entry_commissions", "exit_price", "exit_commissions", "pnl"],
         **{"text-align": "right"}
     ).map(pnl_color, subset="pnl")
     logger.debug("closed_df styling took %.2f seconds", time.time()-start)
@@ -116,28 +138,15 @@ else:
         styled_df, 
         use_container_width=True,
         column_config={
-            "symbol": "Ticker",
-            "option_last": None,
-            "stock_last": None,
+            "trade_desc": "Trade Details",
+            "units": st.column_config.NumberColumn("units", format="%0.2f"),
+            "pnl": st.column_config.NumberColumn("P&L", format="$%0.2f"),
             "entry_price": st.column_config.NumberColumn("Entry Price", format="$%0.2f"),
             "entry_commissions": st.column_config.NumberColumn("Entry Commissions", format="$%0.2f"),
-            "strikeprice": st.column_config.NumberColumn("Strike Price", format="$%0.2f"),
-            "pnl": st.column_config.NumberColumn("P&L", format="$%0.2f"),
             "entry_dt": "Entry Date/Time",
             "exit_price": st.column_config.NumberColumn("Exit Price", format="$%0.2f"),
             "exit_commissions": st.column_config.NumberColumn("Exit Commissions", format="$%0.2f"),
             "exit_dt": "Exit Date/Time",
-            "strategy": "Strategy",
-            "notes": "Notes",
-            "is_open": None,
-            "units": st.column_config.NumberColumn("Position", format="%0.2f"),
-            "expected_rr": None,
-            "live_price": None,
-            "option_bid": None,
-            "option_ask": None,
-            "stock_bid": None,
-            "stock_ask": None,
-            "itm_status": None,
-            "days_to_expiry": None
+            "notes": "Notes"
         }        
     )

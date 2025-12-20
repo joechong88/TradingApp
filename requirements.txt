@@ -3,6 +3,8 @@ numpy>=1.27
 pydantic>=2.0
 requests>=2.31
 aiohttp>=3.9
+os
+json
 
 # Dev
 pytest>=7.0
