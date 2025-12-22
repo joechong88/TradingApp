@@ -72,6 +72,8 @@ def load_open_trades(trades_df: pd.DataFrame) -> pd.DataFrame:
     today_et = pd.Timestamp(datetime.now(eastern).date())
     open_df["days_to_expiry"] = (open_df["expiry_date"] - today_et).dt.days.clip(lower=0)
 
+    return open_df
+
 def update_expiry_in_db(trade_id: int, new_expiry: str):
     """
     Update the expiry_dt field for a given trade.
@@ -204,83 +206,84 @@ else:
     open_df = load_open_trades(df)
     logger.debug("load_open_trades() took %.2f seconds", time.time()-start)
 
-st.subheader("Open trades")
-if open_df.empty:
-    st.info("No open trades.")
-else:
-    # Apply styling to fields
-    # --- 1. Apply the hidden column
-    df_full = open_df.copy()
-    hidden_cols = ["symbol", "strategy", "strikeprice", "expiry_dt"]
-    df_view = df_full.drop(columns=hidden_cols)
+    st.subheader("Open trades")
 
-    # --- 2. Re-order the columns, this must be done at the df, not the styler
-    desired_order = [
-        "trade_desc",
-        "units",
-        "pnl",
-        "itm_status",
-        "days_to_expiry",
-        "stock_last",
-        "option_last",
-        "entry_price",
-        "entry_commissions",
-        "entry_dt",
-        "exit_price",
-        "exit_commissions",
-        "exit_dt",
-        "notes",
-        "live_price",
-        "option_bid",
-        "option_ask",
-        "stock_bid",
-        "stock_ask"
-    ]
-    df_view2 = df_view[desired_order]
+    if open_df.empty:
+        st.info("No open trades.")
+    else:
+        # Apply styling to fields
+        # --- 1. Apply the hidden column
+        df_full = open_df.copy()
+        hidden_cols = ["symbol", "strategy", "strikeprice", "expiry_dt"]
+        df_view = df_full.drop(columns=hidden_cols)
 
-    # --- 3. Styled them accordingly, before sending to rendering the table
-    start = time.time()
-    logger.debug("open_df styling INITIATED")
-    styled_df = df_view2.style.format({
-        "option_last": "${:,.2f}",
-        "stock_last": "${:,.2f}",
-        "entry_price": "${:,.2f}",
-        "entry_commissions": "${:,.2f}",
-        "pnl": "${:,.2f}",
-        "days_to_expiry": "{:,.0f}"
-    }).set_properties(
-        subset=["option_last", "stock_last", "entry_price", "entry_commissions", "pnl"],
-        **{"text-align": "right"}
-    ).map(pnl_color, subset="pnl").map(expiry_color, subset="days_to_expiry")
-    logger.debug("open_df styling took %.2f seconds", time.time()-start)
-    render_trade_table(styled_df, compact_mode)
+        # --- 2. Re-order the columns, this must be done at the df, not the styler
+        desired_order = [
+            "trade_desc",
+            "units",
+            "pnl",
+            "itm_status",
+            "days_to_expiry",
+            "option_last",
+            "stock_last",
+            "entry_price",
+            "entry_commissions",
+            "entry_dt",
+            "exit_price",
+            "exit_commissions",
+            "exit_dt",
+            "notes",
+            "live_price",
+            "option_bid",
+            "option_ask",
+            "stock_bid",
+            "stock_ask"
+        ]
+        df_view2 = df_view[desired_order]
 
-    st.divider()
-    st.subheader("Close an open trade")
-    
-    # Use the label in your selectbox, but return the id
-    trade_map = dict(zip(open_df["trade_desc"], open_df["id"]))
-    sel_label = st.selectbox("Select trade ID to close", list(trade_map.keys()))
-    sel_id = trade_map[sel_label]
-    exit_price = st.number_input("Exit price", min_value=0.0, step=0.01)
-    exit_commissions = st.number_input("Exit Commissions", min_value=0.0, step=0.01)
+        # --- 3. Styled them accordingly, before sending to rendering the table
+        start = time.time()
+        logger.debug("open_df styling INITIATED")
+        styled_df = df_view2.style.format({
+            "option_last": "${:,.2f}",
+            "stock_last": "${:,.2f}",
+            "entry_price": "${:,.2f}",
+            "entry_commissions": "${:,.2f}",
+            "pnl": "${:,.2f}",
+            "days_to_expiry": "{:,.0f}"
+        }).set_properties(
+            subset=["option_last", "stock_last", "entry_price", "entry_commissions", "pnl"],
+            **{"text-align": "right"}
+        ).map(pnl_color, subset="pnl").map(expiry_color, subset="days_to_expiry")
+        logger.debug("open_df styling took %.2f seconds", time.time()-start)
+        render_trade_table(styled_df, compact_mode)
 
-    st.date_input("Exit date (ET assumed)", key="exit_date")
-    st.text_input("Exit time (HH:MM:SS) (ET assumed)", key="exit_time")
+        st.divider()
+        st.subheader("Close an open trade")
+        
+        # Use the label in your selectbox, but return the id
+        trade_map = dict(zip(open_df["trade_desc"], open_df["id"]))
+        sel_label = st.selectbox("Select trade ID to close", list(trade_map.keys()))
+        sel_id = trade_map[sel_label]
+        exit_price = st.number_input("Exit price", min_value=0.0, step=0.01)
+        exit_commissions = st.number_input("Exit Commissions", min_value=0.0, step=0.01)
 
-    if st.button("Close trade"):
-        with SessionLocal() as db:  # type: Session
-            t = db.query(Trade).filter(Trade.id == sel_id).first()
-            if not t:
-                st.error("Trade not found.")
-            else:
-                exit_dt = datetime.combine(
-                    st.session_state.exit_date,
-                    datetime.strptime(st.session_state.exit_time, "%H:%M:%S").time()
-                )
-                t.exit_price = exit_price
-                t.exit_dt = exit_dt
-                t.exit_commissions = exit_commissions
-                t.is_open = False
-                db.commit()
-                st.success(f"Trade {sel_id} closed.")
+        st.date_input("Exit date (ET assumed)", key="exit_date")
+        st.text_input("Exit time (HH:MM:SS) (ET assumed)", key="exit_time")
+
+        if st.button("Close trade"):
+            with SessionLocal() as db:  # type: Session
+                t = db.query(Trade).filter(Trade.id == sel_id).first()
+                if not t:
+                    st.error("Trade not found.")
+                else:
+                    exit_dt = datetime.combine(
+                        st.session_state.exit_date,
+                        datetime.strptime(st.session_state.exit_time, "%H:%M:%S").time()
+                    )
+                    t.exit_price = exit_price
+                    t.exit_dt = exit_dt
+                    t.exit_commissions = exit_commissions
+                    t.is_open = False
+                    db.commit()
+                    st.success(f"Trade {sel_id} closed.")
