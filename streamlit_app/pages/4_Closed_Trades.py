@@ -140,13 +140,13 @@ else:
         column_config={
             "trade_desc": "Trade Details",
             "units": st.column_config.NumberColumn("units", format="%0.2f"),
-            "pnl": st.column_config.NumberColumn("P&L", format="$%0.2f"),
-            "entry_price": st.column_config.NumberColumn("Entry Price", format="$%0.2f"),
-            "entry_commissions": st.column_config.NumberColumn("Entry Commissions", format="$%0.2f"),
+            "pnl": st.column_config.NumberColumn("P&L", width=75, format="$%0.2f"),
+            "entry_price": st.column_config.NumberColumn("Entry Price", width=50, format="$%0.2f"),
+            "entry_commissions": st.column_config.NumberColumn("Entry Comm", width=30, format="$%0.2f"),
             "entry_dt": "Entry Date/Time",
-            "exit_price": st.column_config.NumberColumn("Exit Price", format="$%0.2f"),
-            "exit_commissions": st.column_config.NumberColumn("Exit Commissions", format="$%0.2f"),
+            "exit_price": st.column_config.NumberColumn("Exit Price", width=50, format="$%0.2f"),
+            "exit_commissions": st.column_config.NumberColumn("Exit Comm", width=30, format="$%0.2f"),
             "exit_dt": "Exit Date/Time",
             "notes": "Notes"
-        }        
+        }
     )

@@ -397,6 +397,164 @@ def build_trade_preview_map(df):
 
     return preview_map
 
+def build_rolling_12m_equity_chart(df_year):
+    """
+    Build a 12‑month rolling cumulative equity chart with:
+    - daily P&L aggregation
+    - cumulative equity
+    - drawdown shading
+    - hover marker + tooltip
+    """
+
+    import altair as alt
+    import pandas as pd
+
+    # Ensure datetime
+    df_year = df_year.copy()
+    df_year["exit_dt"] = pd.to_datetime(df_year["exit_dt"])
+
+    # Daily P&L
+    daily = (
+        df_year
+        .groupby(df_year["exit_dt"].dt.date)["pnl"]
+        .sum()
+        .reset_index()
+        .rename(columns={"exit_dt": "exit_date"})
+    )
+
+    # Convert to datetime
+    daily["exit_date"] = pd.to_datetime(daily["exit_date"])
+
+    # Cumulative equity
+    daily["equity"] = daily["pnl"].cumsum()
+
+    # Running max for drawdown shading
+    daily["running_max"] = daily["equity"].cummax()
+
+    # Base chart
+    base = alt.Chart(daily).encode(
+        x=alt.X("exit_date:T", title="Date")
+    )
+
+    # Drawdown shading
+    drawdown_area = base.mark_area(
+        opacity=0.25,
+        color="#e74c3c"
+    ).encode(
+        y="equity:Q",
+        y2="running_max:Q"
+    )
+
+    # Equity line
+    equity_line = base.mark_line(
+        color="#2ecc71",
+        strokeWidth=2
+    ).encode(
+        y=alt.Y("equity:Q", title="Equity (Cumulative P&L)")
+    )
+
+    # Hover selector
+    hover = alt.selection_point(
+        fields=["exit_date"],
+        nearest=True,
+        on="mouseover",
+        empty="none",
+        clear="mouseout"
+    )
+
+    # Hover point marker
+    points = base.mark_circle(size=65, color="#2ecc71").encode(
+        y="equity:Q",
+        opacity=alt.condition(hover, alt.value(1), alt.value(0))
+    ).add_params(hover)
+
+    # Tooltip
+    tooltips = base.mark_rule(color="#aaa").encode(
+        y="equity:Q",
+        tooltip=[
+            alt.Tooltip("exit_date:T", title="Date"),
+            alt.Tooltip("pnl:Q", title="Daily P&L", format=",.0f"),
+            alt.Tooltip("equity:Q", title="Equity", format=",.0f"),
+        ]
+    ).transform_filter(hover)
+
+    # Final chart
+    chart = (drawdown_area + equity_line + points + tooltips).properties(
+        height=300
+    )
+
+    return chart
+
+def build_monthly_equity_curve_chart(daily_month):
+    """
+    Build a monthly rolling cumulative equity curve with:
+    - daily P&L aggregation
+    - cumulative equity
+    - drawdown shading
+    - hover marker + tooltip
+    """
+
+    import altair as alt
+    import pandas as pd
+
+    daily = daily_month.copy()
+    daily["exit_date"] = pd.to_datetime(daily["exit_date"])
+
+    # Cumulative equity
+    daily["equity"] = daily["pnl"].cumsum()
+
+    # Running max for drawdown shading
+    daily["running_max"] = daily["equity"].cummax()
+
+    # Base chart
+    base = alt.Chart(daily).encode(
+        x=alt.X("exit_date:T", title="Date")
+    )
+
+    # Drawdown shading
+    drawdown_area = base.mark_area(
+        opacity=0.25,
+        color="#e74c3c"
+    ).encode(
+        y="equity:Q",
+        y2="running_max:Q"
+    )
+
+    # Equity line
+    equity_line = base.mark_line(
+        color="#2ecc71",
+        strokeWidth=2
+    ).encode(
+        y=alt.Y("equity:Q", title="Equity (Cumulative P&L)")
+    )
+
+    # Hover selector
+    hover = alt.selection_point(
+        fields=["exit_date"],
+        nearest=True,
+        on="mouseover",
+        empty="none",
+        clear="mouseout"
+    )
+
+    # Hover point marker
+    points = base.mark_circle(size=65, color="#2ecc71").encode(
+        y="equity:Q",
+        opacity=alt.condition(hover, alt.value(1), alt.value(0))
+    ).add_params(hover)
+
+    # Tooltip
+    tooltips = base.mark_rule(color="#aaa").encode(
+        y="equity:Q",
+        tooltip=[
+            alt.Tooltip("exit_date:T", title="Date"),
+            alt.Tooltip("pnl:Q", title="Daily P&L", format=",.0f"),
+            alt.Tooltip("equity:Q", title="Equity", format=",.0f"),
+        ]
+    ).transform_filter(hover)
+
+    return (drawdown_area + equity_line + points + tooltips).properties(height=300)
+
 # Global CSS
 st.markdown("""
     <style>
@@ -464,36 +622,29 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- 12 months Rolling equity chart for the year ---
-# Ensure exit_dt is datetime
-df_year["exit_dt"] = pd.to_datetime(df_year["exit_dt"])
+# Ensure datetime
+df_year["exit_date"] = pd.to_datetime(df_year["exit_date"])
 
-# Sort by date
-df_year = df_year.sort_values("exit_dt")
+# Get NYSE trading days for the selected year
+schedule = nyse.schedule(
+    start_date=f"{selected_year}-01-01",
+    end_date=f"{selected_year}-12-31"
+)
+trading_days = pd.to_datetime(schedule.index.date)
 
-# Compute daily P&L
-daily = df_year.groupby(df_year["exit_dt"].dt.date)["pnl"].sum().reset_index()
-daily["exit_date"] = pd.to_datetime(daily["exit_dt"])
+# Filter out weekends + holidays
+df_year = df_year[df_year["exit_date"].isin(trading_days)]
 
-# Compute rolling equity
-daily["equity"] = daily["pnl"].cumsum()
+# Recompute cumulative equity
+df_year["equity"] = df_year["pnl"].cumsum()
+
+annual_rolling_chart = build_rolling_12m_equity_chart(df_year)
 
 # Safety check
-if daily.empty:
+if df_year.empty:
     st.info("No trades for this year - equity curve unavailable.")
 else:
     st.subheader(f"Rolling 12 months Equity Curve for - {selected_year}")
-
-    annual_rolling_chart = (
-        alt.Chart(daily)
-        .mark_line(color="#2ecc71", strokeWidth=2)
-        .encode(
-            x=alt.X("exit_date:T", title="Date"),
-            y=alt.Y("equity:Q", title="Equity (Cumulative P&L)"),
-            tooltip=["exit_date:T", "pnl:Q", "equity:Q"]
-        )
-        .properties(height=300)
-    )
-
     st.altair_chart(annual_rolling_chart, use_container_width=True)
 
 # Create a visual divider
@@ -556,25 +707,21 @@ render_clickable_calendar(calendar_df, date_matrix)
 if st.session_state.selected_date:
     show_trades_for_date(df, st.session_state.selected_date)
 
+# Build rolling equity curve
 st.subheader(f"Rolling Equity Curve for - {calendar.month_name[month]} {year}")
 
-# Build rolling equity curve
-equity_curve = daily.copy()
-equity_curve["equity"] = equity_curve["pnl"].cumsum()
+daily["exit_date"] = pd.to_datetime(daily["exit_date"])
+daily_month = daily[
+    (daily["exit_date"].dt.year == year) &
+    (daily["exit_date"].dt.month == month)
+].copy()
 
-# Rolling equity chart for the month
-equity_chart = (
-    alt.Chart(equity_curve)
-    .mark_line(color="#2ecc71", strokeWidth=2)
-    .encode(
-        x=alt.X("exit_date:T", title="Date"),
-        y=alt.Y("equity:Q", title="Equity (Cumulative P&L)"),
-        tooltip=["exit_date:T", "pnl:Q", "equity:Q"]
-    )
-    .properties(height=300)
-)
+# Filter out weekends + holidays
+daily_month = daily_month[daily_month["exit_date"].isin(trading_days)]
+daily_month["equity"] = daily_month["pnl"].cumsum()
 
-st.altair_chart(equity_chart, use_container_width=True)
+chart_month = build_monthly_equity_curve_chart(daily_month)
+st.altair_chart(chart_month, use_container_width=True)
 
 # Weekly P&L
 st.subheader("Weekly P&L")
