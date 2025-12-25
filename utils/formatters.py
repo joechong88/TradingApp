@@ -1,6 +1,20 @@
 import math
 import pandas as pd
+import re
 
+import re
+
+def is_valid_expiry(expiry_str):
+    """
+    Validates YYYYMMDD format:
+    - Exactly 8 digits
+    - Year starts with 20
+    - Month 01-12
+    - Day 01-31
+    """
+    pattern = r"^20\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])$"
+    return re.match(pattern, expiry_str) is not None
+    
 def format_currency(val):
     """
     Format a numeric value as $X,XXX.XX.

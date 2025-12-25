@@ -102,7 +102,7 @@ def render_trade_table(styled_df, compact_mode: bool = False):
     # --- 1. Render the interactive table (no Styler) ---
     st.data_editor(
         styled_df,
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
         disabled=True,
         column_config={
@@ -134,15 +134,43 @@ def render_trade_table(styled_df, compact_mode: bool = False):
         }
     )
 
-    # --- 3. Add Edit button for each open trade - TEMPORARILY REMOVE THIS FUNCTION
-    # --- Use DBBrowser on Windows app to do data patching
-    #for idx, row in df.iterrows():
-    #    col1, col2, col3 = st.columns([2,2,1])
-    #    
-    #    col1.write(row["symbol"])
-    #    col2.write(row["expiry_dt"])
-    #    if col3.button("Edit", key=f"edit_expiry_{row['id']}"):
-    #        update_expiry_dialog(row)
+# --- Calculates the difference between the stock_last and strikeprice ---
+#       and returns the CSS for the background colour
+#
+def itm_gradient(row):
+    """
+    Logic for the 'itm_status' column background color.
+    """
+    # Create an array of empty strings for the row
+    colors = [''] * len(row)
+    
+    # Locate the index of the column we want to color
+    try:
+        itm_idx = row.index.get_loc('itm_status')
+    except KeyError:
+        return colors
+
+    status = row.get('itm_status')
+    stock = row.get('stock_last')
+    strike = row.get('strikeprice')
+
+    # Logic: Only color if ITM and values are valid
+    if status == "ITM" and stock is not None and strike is not None:
+        diff = abs(stock - strike)
+        
+        if diff < 1.0:
+            bg = "#ff4b4b"  # Red (High risk/Near-the-money)
+            text = "white"
+        elif 1.0 <= diff <= 5.0:
+            bg = "#ffaa00"  # Yellow/Orange
+            text = "black"
+        else:
+            bg = "#28a745"  # Green (Deep ITM/Safe)
+            text = "white"
+            
+        colors[itm_idx] = f'background-color: {bg}; color: {text}; font-weight: bold;'
+    
+    return colors
 
 @st.dialog("Update Expiry Date")
 def update_expiry_dialog(row):
@@ -254,7 +282,7 @@ else:
         }).set_properties(
             subset=["option_last", "stock_last", "entry_price", "entry_commissions", "pnl"],
             **{"text-align": "right"}
-        ).map(pnl_color, subset="pnl").map(expiry_color, subset="days_to_expiry")
+        ).map(pnl_color, subset="pnl").map(expiry_color, subset="days_to_expiry").apply(itm_gradient, axis=1)
         logger.debug("open_df styling took %.2f seconds", time.time()-start)
         render_trade_table(styled_df, compact_mode)
 

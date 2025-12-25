@@ -5,7 +5,7 @@ from datetime import datetime, date
 import pytz
 from sqlalchemy.orm import Session
 from db.models import SessionLocal, Trade
-from utils.trades import trades_to_df
+from utils.trades import trades_to_df, calculate_pnl
 import plotly.graph_objects as go
 import altair as alt
 import pandas_market_calendars as mcal 
@@ -51,13 +51,6 @@ def build_monthly_stats(df):
     # Extract year-month
     closed["month"] = closed["exit_dt"].dt.to_period("M")
 
-    # Compute P&L per trade
-    closed["pnl"] = (
-        (closed["exit_price"] - closed["entry_price"]) * closed["units"]
-        - closed["entry_commissions"]
-        - closed["exit_commissions"]
-    )
-
     # Win/Loss flags
     closed["is_win"] = closed["pnl"] > 0
     closed["is_loss"] = closed["pnl"] < 0
@@ -66,8 +59,8 @@ def build_monthly_stats(df):
     summary = closed.groupby("month").agg(
         trades_closed=("id", "count"),
         total_pnl=("pnl", "sum"),
-        wins=("is_win", "sum"),
-        losses=("is_loss", "sum"),
+        wins=("is_win", "sum") if "is_win" in closed else ("pnl", lambda x: (x>0).sum()),
+        losses=("is_loss", "sum") if "is_loss" in closed else ("pnl", lambda x: (x<0).sum()),
     )
 
     # Win rate
@@ -586,7 +579,7 @@ st.markdown("""
 
 col1, col2 = st.columns([2, 1])
 with col1:
-    st.title("Dashboard: Closed trades P/L calendar")
+    st.title("Dashboard P&L calendar")
 with col2:
     show_market_clock(mode="static")
 
@@ -601,128 +594,102 @@ if df.empty:
     st.info("No closed trades yet.")
     st.stop()
 
-# Render the annual calendar first
-available_years = sorted(set(df["exit_dt"].dt.year))
-selected_year = st.selectbox("Select Year", available_years, index=available_years.index(date.today().year))
+# --- TABS SETUP ---
+tab_annual, tab_monthly = st.tabs(["📊 Annual Performance", "📅 Monthly Calendar View"])
 
-df_year = df[df["exit_dt"].dt.year == selected_year]
-monthly_summary = build_monthly_stats(df_year)
-st.markdown(" ", unsafe_allow_html=True)
-annual_container = st.container()
-with annual_container:
+# ---------------------------------------------------------
+# TAB 1: ANNUAL VIEW
+# ---------------------------------------------------------
+with tab_annual:
+    available_years = sorted(set(df["exit_dt"].dt.year), reverse=True)
+    selected_year = st.selectbox("Select Year to Analyze", available_years, key="year_selector_annual")
+
+    df_year = df[df["exit_dt"].dt.year == selected_year].copy()
+    monthly_summary = build_monthly_stats(df_year)
+
+    # Annual Heatmap Blocks
+    st.markdown("### Monthly Performance Summary")
     render_monthly_calendar(monthly_summary, selected_year)
 
-# Create a visual divider
-st.markdown("""
-    <div style='
-        height: 1px;
-        background-color: #ddd;
-        margin: 35px 0;
-    '></div>
-""", unsafe_allow_html=True)
+    st.markdown("---")
 
-# --- 12 months Rolling equity chart for the year ---
-# Ensure datetime
-df_year["exit_date"] = pd.to_datetime(df_year["exit_date"])
+    # Annual Rolling Equity
+    st.subheader(f"Equity Curve - {selected_year}")
+    
+    # Filter for NYSE trading days to ensure clean chart
+    schedule = nyse.schedule(start_date=f"{selected_year}-01-01", end_date=f"{selected_year}-12-31")
+    trading_days_year = pd.to_datetime(schedule.index.date)
+    
+    df_year_chart = df_year.copy()
+    df_year_chart["exit_date"] = pd.to_datetime(df_year_chart["exit_dt"]).dt.date
+    df_year_chart = df_year_chart[pd.to_datetime(df_year_chart["exit_date"]).isin(trading_days_year)]
 
-# Get NYSE trading days for the selected year
-schedule = nyse.schedule(
-    start_date=f"{selected_year}-01-01",
-    end_date=f"{selected_year}-12-31"
-)
-trading_days = pd.to_datetime(schedule.index.date)
+    if not df_year_chart.empty:
+        annual_rolling_chart = build_rolling_12m_equity_chart(df_year_chart)
+        st.altair_chart(annual_rolling_chart, width='stretch')
+    else:
+        st.warning("No trading day data available for this year.")
 
-# Filter out weekends + holidays
-df_year = df_year[df_year["exit_date"].isin(trading_days)]
+# ---------------------------------------------------------
+# TAB 2: MONTHLY VIEW
+# ---------------------------------------------------------
+with tab_monthly:
+    # Controls for Month/Year
+    c1, c2, c3 = st.columns([1, 1, 2])
+    with c1:
+        m_year = st.selectbox("Year", list(range(2020, 2031)), index=list(range(2020, 2031)).index(date.today().year))
+    with c2:
+        m_month = st.selectbox("Month", list(range(1, 13)), index=date.today().month - 1)
+    
+    # Metrics Bar
+    stats = compute_win_loss(df[(df["exit_dt"].dt.year == m_year) & (df["exit_dt"].dt.month == m_month)])
+    current_month_dates = [d for d in pnl_map.keys() if d.year == m_year and d.month == m_month]    
+    mtd_pnl = sum(pnl_map[d] for d in current_month_dates)
 
-# Recompute cumulative equity
-df_year["equity"] = df_year["pnl"].cumsum()
+    m_col1, m_col2, m_col3, m_col4 = st.columns(4)
+    m_col1.metric("MTD P&L", f"${mtd_pnl:,.2f}")
+    m_col2.metric("Wins", stats["wins"])
+    m_col3.metric("Losses", stats["losses"])
+    m_col4.metric("Win Rate", f"{stats['win_rate']*100:.1f}%")
 
-annual_rolling_chart = build_rolling_12m_equity_chart(df_year)
+    st.markdown("---")
 
-# Safety check
-if df_year.empty:
-    st.info("No trades for this year - equity curve unavailable.")
-else:
-    st.subheader(f"Rolling 12 months Equity Curve for - {selected_year}")
-    st.altair_chart(annual_rolling_chart, use_container_width=True)
+    # Calendar Rendering
+    st.subheader(f"{calendar.month_name[m_month]} {m_year} Calendar")
+    calendar_df, date_matrix = build_calendar_matrix(m_year, m_month, pnl_map, count_map, preview_map)
+    
+    render_weekday_labels()
+    render_clickable_calendar(calendar_df, date_matrix)
 
-# Create a visual divider
-st.markdown("""
-    <div style='
-        height: 1px;
-        background-color: #ddd;
-        margin: 35px 0;
-    '></div>
-""", unsafe_allow_html=True)
+    # Drill-down (Shown only if a day is clicked)
+    if st.session_state.get("selected_date"):
+        st.markdown("---")
+        show_trades_for_date(df, st.session_state.selected_date)
+        if st.button("Clear Selection"):
+            st.session_state.selected_date = None
+            st.rerun()
 
-# User selects month + year
-col1, col2 = st.columns(2)
-year = col1.selectbox("Year", list(range(2020, 2031)), index=list(range(2020,2031)).index(date.today().year))
-month = col2.selectbox("Month", list(range(1, 13)), index=date.today().month - 1)
+    st.markdown("---")
 
-calendar_df, date_matrix = build_calendar_matrix(year, month, pnl_map, count_map, preview_map)
-mtd_pnl = get_month_to_date_pnl(df, year, month)
+    # Monthly Equity Curve
+    st.subheader("Monthly Equity Growth")
+    daily_all, _, _ = aggregate_pnl(df)
+    daily_all["exit_date"] = pd.to_datetime(daily_all["exit_date"])
+    
+    daily_month = daily_all[
+        (daily_all["exit_date"].dt.year == m_year) & 
+        (daily_all["exit_date"].dt.month == m_month)
+    ].copy()
 
-# Color logic
-color = "#2ecc71" if mtd_pnl > 0 else "#e74c3c" if mtd_pnl < 0 else "#f1c40f"
-
-# --- Summary Metrics ---
-stats = compute_win_loss(df)
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Winning Trades", stats["wins"])
-col2.metric("Losing Trades", stats["losses"])
-col3.metric("Breakeven", stats["breakeven"])
-col4.metric("Win Rate", f"{stats['win_rate']*100:.1f}%")
-
-# --- P&L Aggregations ---
-daily, weekly, monthly = aggregate_pnl(df)
-
-# Render the calendar
-st.subheader(f"P&L Calendar — {calendar.month_name[month]} {year}")
-
-# Show the selected month's up-to-date PnL
-st.markdown(
-    f"""
-    <div style="
-        background-color:{color};
-        padding:14px;
-        border-radius:8px;
-        color:white;
-        font-size:22px;
-        font-weight:600;
-        text-align:center;
-        margin-top:10px;
-        margin-bottom:20px;
-    ">
-        Month‑to‑Date P&L: ${mtd_pnl:,.2f}
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-render_weekday_labels()
-render_clickable_calendar(calendar_df, date_matrix)
-
-# Drill-down section
-if st.session_state.selected_date:
-    show_trades_for_date(df, st.session_state.selected_date)
-
-# Build rolling equity curve
-st.subheader(f"Rolling Equity Curve for - {calendar.month_name[month]} {year}")
-
-daily["exit_date"] = pd.to_datetime(daily["exit_date"])
-daily_month = daily[
-    (daily["exit_date"].dt.year == year) &
-    (daily["exit_date"].dt.month == month)
-].copy()
-
-# Filter out weekends + holidays
-daily_month = daily_month[daily_month["exit_date"].isin(trading_days)]
-daily_month["equity"] = daily_month["pnl"].cumsum()
-
-chart_month = build_monthly_equity_curve_chart(daily_month)
-st.altair_chart(chart_month, use_container_width=True)
-
-# Weekly P&L
-st.subheader("Weekly P&L")
-st.bar_chart(weekly.set_index("exit_week"))
+    if not daily_month.empty:
+        # Filter for trading days
+        month_start = date(m_year, m_month, 1)
+        month_end = date(m_year, m_month, calendar.monthrange(m_year, m_month)[1])
+        m_schedule = nyse.schedule(start_date=month_start, end_date=month_end)
+        m_trading_days = pd.to_datetime(m_schedule.index.date)
+        
+        daily_month = daily_month[daily_month["exit_date"].isin(m_trading_days)]
+        chart_month = build_monthly_equity_curve_chart(daily_month)
+        st.altair_chart(chart_month, width='stretch')
+    else:
+        st.info("No trades closed in this month to display equity curve.")

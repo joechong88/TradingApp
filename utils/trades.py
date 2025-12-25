@@ -19,24 +19,51 @@ def get_qm() -> QuoteManager:
 # --- Initiate logging
 logger = get_logger(__name__)
 
-def calculate_pnl(trade: "Trade", live_price: float | None = None) -> float | None:
+def calculate_pnl(data, live_price: float = None) -> float:
     """
-    Calculate P&L for a trade.
-    - If live_price is provided, use it for open trades.
-    - Otherwise, use exit_price for closed trades.
+    Unified P&L calculator for both Trade objects and DataFrame rows.
+    Handles Stocks (1x) and Options (100x).
     """
-    price_out = live_price if live_price is not None else trade.exit_price
-    if price_out is None:
-        return None # still open and no live price
+    # 1. Handle Input Type (Object vs Dictionary/Row)
+    # This allows the function to work with trade_obj.attribute or row['column']
+    if hasattr(data, "__getitem__"):  # It's a dict or pandas row
+        entry_price = data.get("entry_price")
+        exit_price = data.get("exit_price")
+        units = data.get("units")
+        entry_comm = data.get("entry_commissions", 0) or 0
+        exit_comm = data.get("exit_commissions", 0) or 0
+        strategy = str(data.get("strategy", "")).lower().strip()
+        has_option_attrs = data.get("strikeprice") and data.get("expiry_dt")
+    else:  # It's a Trade class object
+        entry_price = data.entry_price
+        exit_price = data.exit_price
+        units = data.units
+        entry_comm = data.entry_commissions or 0
+        exit_comm = data.exit_commissions or 0
+        strategy = str(getattr(data, "strategy", "")).lower().strip()
+        has_option_attrs = getattr(data, "strikeprice", None) and getattr(data, "expiry_dt", None)
 
-    if trade.strikeprice and trade.expiry_dt:
-        # Option P&L: (exit/live - entry) * units * 100
-        return ((price_out - trade.entry_price) * trade.units * 100) \
-            - (trade.entry_commissions or 0.0) - (trade.exit_commissions or 0.0)
+    # 2. Determine Exit/Live Price
+    price_out = live_price if live_price is not None else exit_price
+    
+    if price_out is None or entry_price is None:
+        return 0.0
+
+    # 3. Determine Multiplier
+    # Logic: If specifically 'long'/'short' -> Stock. 
+    # Otherwise, if it has option attributes -> Option.
+    if strategy in ["long", "short"]:
+        multiplier = 1
+    elif has_option_attrs or strategy not in ["", "none"]:
+        multiplier = 100
     else:
-        # Stock P&L: (exit/live - entry) * units
-        return ((price_out - trade.entry_price) * trade.units) \
-            - (trade.entry_commissions or 0.0) - (trade.exit_commissions or 0.0)
+        multiplier = 1  # Default fallback to Stock
+
+    # 4. Final Calculation
+    gross_pnl = (price_out - entry_price) * units * multiplier
+    net_pnl = gross_pnl - entry_comm - exit_comm
+    
+    return net_pnl
 
 def calc_pdh_pdl(df: pd.DataFrame) -> Dict[str, float]:
     if df.empty:
@@ -208,3 +235,36 @@ def trades_to_df(trades: List[Trade], live: bool = True, qm=None) -> pd.DataFram
     ]
 
     return pd.DataFrame(rows, columns=columns)
+
+def compute_trade_duration(df, entry_col="entry_dt", exit_col="exit_dt"):
+    """
+    Adds a 'duration' column showing the time spent in the trade
+    as a human-readable string (Xd Yh Zm).
+    """
+    # Ensure datetime
+    df[entry_col] = pd.to_datetime(df[entry_col])
+    df[exit_col] = pd.to_datetime(df[exit_col])
+
+    durations = []
+
+    for entry, exit_ in zip(df[entry_col], df[exit_col]):
+        delta = exit_ - entry
+
+        total_minutes = int(delta.total_seconds() // 60)
+        days = total_minutes // (24 * 60)
+        hours = (total_minutes % (24 * 60)) // 60
+        minutes = total_minutes % 60
+
+        # Build readable string
+        parts = []
+        if days > 0:
+            parts.append(f"{days}d")
+        if hours > 0:
+            parts.append(f"{hours}h")
+        if minutes > 0 or (days == 0 and hours == 0):
+            parts.append(f"{minutes}m")
+
+        durations.append(" ".join(parts))
+
+    df["duration"] = durations
+    return df

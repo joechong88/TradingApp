@@ -8,3 +8,8 @@ __pycache__/
 dist/
 build/
 *.egg-info
+
+data/cache
+data/logs
+
+.streamlit/

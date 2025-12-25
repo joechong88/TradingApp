@@ -110,6 +110,18 @@ class QuoteManager:
                 f"isConnected={self.ib.isConnected()}"
             )
 
+    def get_status(self):
+        """Returns (status_text, color_icon, session_name)"""
+        if not self.ib:
+            return "Disconnected", "🔴", "N/A"
+        
+        if self.ib.isConnected():
+            session = self.get_market_session()
+            icon = "🟢" if session == "regular" else "🔵"
+            return "Connected", icon, session
+        
+        return "Disconnected", "⚪", "N/A"
+
     def get_market_session(self):
         """
         Returns one of:
@@ -180,131 +192,160 @@ class QuoteManager:
     # ✅ Synthetic Last Price
     # ---------------------------------------------------------
     def compute_last(self, ticker, session):
-        last = clean_numeric(ticker.last)
-        bid = clean_numeric(ticker.bid)
-        ask = clean_numeric(ticker.ask)
-        close = clean_numeric(ticker.close)
+        """
+        Calculates the most accurate price for a contract based on the session state.
+        Prioritizes delayed trade data (14.65) over the session close (14.58).
+        """
+        # 1. Prioritize 'Last' Trade (Delayed vs Live)
+        # If the session is closed, we MUST check delayedLast first to get the 14.65 value
+        d_last = clean_numeric(getattr(ticker, 'delayedLast', None))
+        r_last = clean_numeric(ticker.last)
+        r_close = clean_numeric(ticker.close)
+        d_close = clean_numeric(getattr(ticker, 'delayedClose', None))
         
-        # Prefer a real last if present 
-        if last is not None:
-            return last
-        # Mid if both sides available
-        if bid is not None and ask is not None:
-            return (bid + ask) / 2
-        if bid is not None:
-            return bid
-        if ask is not None:
-            return ask
+        # --- DEBUG PRINT ---
+        logger.info(f"[DEBUG:compute_last] {ticker.contract.localSymbol} | "
+                    f"r_last: {r_last} | d_last: {d_last} | "
+                    f"r_close: {r_close} | d_close: {d_close}")
+
+        if session in ("closed", "weekend", "holiday"):
+            if d_last: return d_last  # Captured from Tick ID 68
+            if r_last: return r_last
+        else:
+            if r_last: return r_last
+            if d_last: return d_last
+            
+        # 2. Check Bid/Ask Midpoint (Regular or Delayed)
+        bid = clean_numeric(ticker.bid) or clean_numeric(getattr(ticker, 'delayedBid', None))
+        ask = clean_numeric(ticker.ask) or clean_numeric(getattr(ticker, 'delayedAsk', None))
         
-        # fallback: yesterday's close for options and stocks
-        if session in ("pre", "after", "closed", "weekend", "holiday"):
-            return close
+        if bid and ask and bid > 0 and ask > 0:
+            mid = (bid + ask) / 2
+            logger.info(f"[DEBUG:compute_last] Using Midpoint: {mid}")
+            return mid
+
+        # 3. Final Fallback: Model Price (The 'Fair Value' from Greeks)
+        # If the market is totally illiquid, the Model Price is better than None
+        # In closed sessions, 'modelGreeks' is often None while 'lastGreeks' is populated
+        if ticker.contract.secType == 'OPT':
+            mg = ticker.modelGreeks or getattr(ticker, 'lastGreeks', None) or getattr(ticker, 'bidAskGreeks', None)
+            if mg:
+                opt_price = clean_numeric(getattr(mg, 'optPrice', None))
+                if opt_price:
+                    return opt_price
+
+        # 4. Fallback to Close (Regular or Delayed)
+        final_fallback = r_close or d_close
+        if final_fallback:
+            logger.info(f"[DEBUG:compute_last] Falling back to Close: {final_fallback}")        
+            return final_fallback
 
         return None
 
     # ---------------------------------------------------------
     # ✅ Contract Builder (fixed Option constructor)
     # ---------------------------------------------------------
-    def _make_contract(self, symbol, expiry=None, strike=None, right=None,
-                       exchange="SMART", currency="USD"):
+    def _make_contract(self, symbol, expiry=None, strike=None, right=None, exchange="SMART", currency="USD"):
 
         # ✅ Option(symbol: str = '', lastTradeDateOrContractMonth: str = '',
         #       strike: float = 0.0, right: str = '', exchange: str = '',
         #       multiplier: str = '', currency: str = '', **kwargs)
         if expiry and strike and right:
-            multiplier = 100.0
+            multiplier = "100"
             return Option(symbol, expiry, float(strike), right, exchange, multiplier, currency)
 
-        if symbol == "AAPL":
-            return Stock(symbol, exchange, currency, primaryExchange="NASDAQ")    
         return Stock(symbol, exchange, currency)
 
     # ---------------------------------------------------------
     # ✅ Same , time-out protected version of qualify
     # ---------------------------------------------------------
-    def safe_qualify(self, contract, timeout=2.0):
+    def safe_qualify(self, contract, timeout=2.0): # Increased to 5s for delayed data
         """
-        Run qualifyContracts() in a separate thread with a hard timeout.
-        This avoids Streamlit + ib_insync event loop deadlocks.
+        Streamlit-safe qualification. 
+        Ensures the async call happens on the correct event loop.
         """
-        def _run():
-            return self.ib.qualifyContracts(contract)
+        if not self.ib or not self.ib.isConnected():
+            logger.error("[safe_qualify] IB not connected")
+            return None
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(_run)
-            try:
-                return future.result(timeout=timeout)
-            except concurrent.futures.TimeoutError:
-                logger.warning(f"[safe_qualify] TIMEOUT qualifying contract: {contract}")
-                return None
-            except Exception as e:
-                logger.error(f"[safe_qualify] qualifyContracts failed: {e}")
-                return None
+        try:
+            # Instead of run_coroutine_threadsafe, use the built-in ib.run
+            # to process the qualifyContracts coroutine.
+            coro = self.ib.qualifyContractsAsync(contract)
+            
+            # This blocks the current thread but allows the IB loop to process events
+            result = self.ib.run(asyncio.wait_for(coro, timeout=timeout))
+            
+            if result:
+                return result[0]
+            return None
+        except Exception as e:
+            # Logs as 'Qualification failed for TSLA: [Error message]'
+            logger.warning(f"[safe_qualify] Qualification failed for {contract.symbol}: {e}")
+            return None
 
     # ---------------------------------------------------------
     # ✅ Subscribe (with contract validation)
     # ---------------------------------------------------------
-    def subscribe(self, symbol, expiry=None, strike=None, right=None):
+    def subscribe(self, symbol, expiry=None, strike=None, right=None, session=None):
         key = (symbol, expiry, strike, right, self.version)
+        # Use the passed session if available, otherwise fallback to class state
+        effective_session = session or self.current_session
 
-        session = self.current_session
-
-        if session is None:
+        if effective_session is None:
             logger.warning(
                 "[subscribe] current_session is None; did you forget to call "
                 "set_market_data_type() before subscribe()?"
             )
 
         # ✅ Force correct market data type at subscription time
-        if self.current_session in ("closed", "weekend", "holiday"):
+        if effective_session in ("closed", "weekend", "holiday"):
             self.ib.reqMarketDataType(3)
             logger.info("[subscribe] Forcing DELAYED data (3) before reqMktData")
         else:
             self.ib.reqMarketDataType(1)
             logger.info("[subscribe] Forcing LIVE data (1) before reqMktData")
 
-        # Don't trust stale tickers after cancel_all or reruns
-        # ticker = self.tickers.get(key)
-
         # ✅ If ticker exists but session changed → force fresh subscription
         with self.lock:
             if key in self.tickers:
                 old_session = getattr(self.tickers[key], "_session", None)
 
-                if old_session != session:
-                    logger.info(f"[subscribe] session changed {old_session} → {session}, refreshing ticker for {key}")
+                if old_session != effective_session:
+                    logger.info(f"[subscribe] session changed {old_session} → {effective_session}, refreshing ticker for {key}")
                     self.ib.cancelMktData(self.tickers[key])
                     del self.tickers[key]
                 else:
-                    logger.info(f"[subscribe] reuse ticker for {key} (session={session})")
+                    logger.info(f"[subscribe] reuse ticker for {key} (session={effective_session})")
                     return self.tickers[key]
 
+            # 1. Start with SMART
             contract = self._make_contract(symbol, expiry, strike, right)
             logger.info(f"[subscribe] built contract={contract} for {key}")
+            logger.info(f"[subscribe] Attempting qualification (SMART) for {symbol}")
+            qualified = self.safe_qualify(contract)
 
-            # only qualify for options
-            if expiry and strike and right:
-                logger.info(f"[subscribe] calling qualifyContracts for {key}")
-                qualified = self.safe_qualify(contract)
-                logger.info(f"[subscribe] qualified={qualified} for {key}")
-                if not qualified:
-                    logger.error(f"[subscribe] could NOT qualify contract for {key}")
-                    return None
+            # 2. Fallback logic for options if SMART fails
+            if not qualified and expiry:
+                fallbacks = ["BOX", "CBOE", "AMEX"]
+                for exch in fallbacks:
+                    logger.info(f"[subscribe] SMART failed. Retrying with {exch} for {symbol}...")
+                    contract = self._make_contract(symbol, expiry, strike, right, exchange=exch)
+                    qualified = self.safe_qualify(contract, timeout=2.0) # Shorter timeout for retries
+                    if qualified:
+                        logger.info(f"[subscribe] Successfully qualified via {exch}")
+                        break
+                    self.ib.sleep(0.1)
 
-                contract = qualified[0]
-                logger.info(f"[subscribe] using qualified contract={contract} for {key}")
-            else:
-                logger.info(f"[subscribe] qualifying stock contract for {key}")
-                qualified = self.safe_qualify(contract)
-                logger.info(f"[subscribe] stock qualified={qualified} for {key}")
-                if qualified:
-                    contract = qualified[0]
+            if not qualified:
+                logger.error(f"[subscribe] All exchanges failed for {key}")
+                return None
+            
+            # At this point, qualified is definitely a single Contract object (not a list)
+            contract = qualified
 
-            # Stocks skip qualification entirely
-            if expiry and strike and right:
-                generic_ticks = "106" 
-            else:
-                generic_ticks = "165" 
+            # Set tick list based on asset type
+            generic_ticks = "106" if expiry else "165"
 
             logger.info(f"[subscribe] calling reqMktData for {contract} - {key}")
             logger.info(f"[subscribe] generic_ticks={generic_ticks} for {key}")
@@ -315,9 +356,9 @@ class QuoteManager:
             )
 
             # Store the session used for this ticker
-            ticker._session = session
+            ticker._session = effective_session
 
-            logger.info(f"[DEBUG] ticker._session={getattr(ticker, '_session', None)} current_session={session}")
+            logger.info(f"[DEBUG] ticker._session={ticker._session} session_context={effective_session}")
             logger.info(f"[subscribe] reqMktData returned ticker={ticker} with ticker.last={ticker.last}, ticker.bid={ticker.bid}, ticker.ask={ticker.ask}, ticker.close={ticker.close} for {key}")
 
             self.tickers[key] = ticker
@@ -327,22 +368,19 @@ class QuoteManager:
     # ✅ Main Quote Function (non‑freezing)
     # ---------------------------------------------------------
     def safe_get_quote(self, *args, **kwargs):
+        default_quote = {
+            "last": None, "bid": None, "ask": None, "close": None, 
+            "delta": None, "gamma": None, "vega": None, "theta": None, "iv": None, 
+            "timestamp": time.time()
+        }
+
         try:
             kwargs["version"] = self.version
-            return self.get_quote(*args, **kwargs)
+            res = self.get_quote(*args, **kwargs)
+            return res if res is not None else default_quote
         except Exception as e:
             logger.exception(f"[safe_get_quote] error: {e}")
-            return {
-                "last": None,
-                "bid": None,
-                "ask": None,
-                "delta": None,
-                "gamma": None,
-                "vega": None,
-                "theta": None,
-                "iv": None,
-                "timestamp": time.time()               
-            }
+            return default_quote
 
     def get_quote(self, symbol, exchange="SMART", currency="USD",
                   expiry=None, strike=None, right=None, timeout=2.5, version=0):
@@ -359,7 +397,7 @@ class QuoteManager:
         # Longer timeout for delayed data
         effective_timeout = 5 if session in ("closed", "weekend", "holiday") else timeout
 
-        key = (symbol, expiry, strike, right)
+        key = (symbol, expiry, strike, right, self.version)
         ticker = self.subscribe(symbol, expiry, strike, right)
         logger.info(f"[get_quote] subscribe returned ticker={ticker} for {symbol}")
 
@@ -372,23 +410,37 @@ class QuoteManager:
         while True:
             elapsed = time.time() - start
 
+            # Use your logic to see if we have ANY valid price yet
+            synthetic_last = self.compute_last(ticker, self.current_session)
+
+            # Check for Greeks (Model, Last, Bid, or Ask versions)
+            mg_source = "None"
+            mg = None
+
             logger.info(
                 f"[DEBUG:get_quote] symbol={symbol} elapsed={elapsed:.2f}s "
-                f"last={ticker.last} bid={ticker.bid} ask={ticker.ask} close={ticker.close} "
-                f"mg={ticker.modelGreeks}"
+                f"L={ticker.last} dL={getattr(ticker, 'delayedLast', 'nan')} " # Added dL
+                f"B={ticker.bid} A={ticker.ask} C={ticker.close} "
+                f"mg_src={mg_source}"
             )
 
-            if (
-                (isinstance(ticker.last, (int, float)) and not math.isnan(ticker.last)) or
-                (isinstance(ticker.close, (int, float)) and not math.isnan(ticker.close)) or
-                (isinstance(ticker.bid, (int, float)) and not math.isnan(ticker.bid)) or
-                (isinstance(ticker.ask, (int, float)) and not math.isnan(ticker.ask)) or
-                ticker.modelGreeks is not None
-            ):
-                logger.info(
-                f"[get_quote] data ready for {symbol}: "
-                f"last={ticker.last}, bid={ticker.bid}, ask={ticker.ask}, mg={ticker.modelGreeks}"
-                )
+            if ticker.modelGreeks:
+                mg, mg_source = ticker.modelGreeks, "modelGreeks"
+            elif getattr(ticker, 'lastGreeks', None):
+                mg, mg_source = ticker.lastGreeks, "lastGreeks"
+            elif getattr(ticker, 'bidAskGreeks', None):
+                mg, mg_source = ticker.bidAskGreeks, "bidAskGreeks"
+
+            has_price = synthetic_last is not None
+            has_greeks = mg is not None and not math.isnan(getattr(mg, 'impliedVol', float('nan')))
+
+            logger.info(f"[DEBUG:get_quote loop] {symbol} | Price Found: {has_price} ({synthetic_last}) | "
+                        f"Greeks Source: {mg_source} | IV: {getattr(mg, 'impliedVol', 'N/A')}")
+
+            # Only break if we have BOTH, or if we've timed out
+            is_option = (ticker.contract.secType == 'OPT')
+            if (has_price and (not is_option or has_greeks)):
+                logger.info(f"[get_quote] Full data ready for {symbol}")
                 break
             
             if elapsed >= effective_timeout:
@@ -400,19 +452,16 @@ class QuoteManager:
 
             self.ib.sleep(0.05)
 
-        mg = ticker.modelGreeks
-        synthetic_last = self.compute_last(ticker, session)
-
         quote = {
             "last": synthetic_last,
-            "bid": ticker.bid,
-            "ask": ticker.ask,
-            "close": ticker.close,
-            "delta": mg.delta if mg else None,
-            "gamma": mg.gamma if mg else None,
-            "vega": mg.vega if mg else None,
-            "theta": mg.theta if mg else None,
-            "iv": mg.impliedVol if mg else None,
+            "bid": clean_numeric(ticker.bid) or clean_numeric(getattr(ticker, 'delayedBid', None)), 
+            "ask": clean_numeric(ticker.ask) or clean_numeric(getattr(ticker, 'delayedAsk', None)),
+            "close": clean_numeric(ticker.close) or clean_numeric(getattr(ticker, 'delayedClose', None)),
+            "delta": getattr(mg, 'delta', None) if mg else None,
+            "gamma": getattr(mg, 'gamma', None) if mg else None,
+            "vega": getattr(mg, 'vega', None) if mg else None,
+            "theta": getattr(mg, 'theta', None) if mg else None,
+            "iv": getattr(mg, 'impliedVol', None) if mg else None,
             "timestamp": time.time()
         }
 

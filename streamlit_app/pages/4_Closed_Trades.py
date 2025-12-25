@@ -16,7 +16,7 @@ import time
 
 from sqlalchemy.orm import Session
 from db.models import SessionLocal, Trade
-from utils.trades import calculate_pnl, trades_to_df, build_trade_label
+from utils.trades import trades_to_df, build_trade_label, compute_trade_duration
 from utils.market_clock import show_market_clock
 from utils.formatters import format_currency, format_pnl, format_datetime, pnl_color, expiry_color
 from utils.logger import get_logger
@@ -55,11 +55,22 @@ def load_closed_trades(trades_df: pd.DataFrame) -> pd.DataFrame:
                 "entry_commissions","exit_commissions","pnl"]:
         closed_df[col] = pd.to_numeric(closed_df[col], errors="coerce")
 
+    closed_df = compute_trade_duration(closed_df)
+
     # Re-order columns: show PnL earlier
     cols_order = ["id", "symbol", "strategy", "pnl", "entry_price", "exit_price"] + [
                   c for c in closed_df.columns if c not in ["id", "symbol", "strategy", "pnl", "entry_price", "exit_price"]
-    ]    
+    ]
+
     return closed_df[cols_order]
+
+# Compute dynamic widths for columns that don't already have one
+def compute_widths(df):
+    widths = {}
+    for col in df.columns:
+        max_len = max(df[col].astype(str).map(len).max(), len(col))
+        widths[col] = max(80, min(max_len * 8, 400))  # clamp for readability
+    return widths
 
 ### Main function starts here ###
 # Create 2 columns for the Heading
@@ -118,9 +129,33 @@ else:
         "exit_price",
         "exit_commissions",
         "exit_dt",
+        "duration",
         "notes"
     ]
     df_view2 = df_view[desired_order]
+
+    # sort by exit-date/time
+    df_view2 = df_view2.sort_values("exit_dt", ascending=False)
+
+    auto_widths = compute_widths(df_view2)
+    base_config = {
+        col: st.column_config.Column(width=auto_widths[col])
+        for col in df_view2.columns
+    }
+
+    base_config.update({
+        "trade_desc": "Trade Details",
+        "units": st.column_config.NumberColumn("units", format="%0.2f"),
+        "pnl": st.column_config.NumberColumn("P&L", format="$%0.2f"),
+        "entry_price": st.column_config.NumberColumn("Entry Price", format="$%0.2f"),
+        "entry_commissions": st.column_config.NumberColumn("Entry Comm", format="$%0.2f"),
+        "entry_dt": "Entry Date/Time",
+        "exit_price": st.column_config.NumberColumn("Exit Price", format="$%0.2f"),
+        "exit_commissions": st.column_config.NumberColumn("Exit Comm", format="$%0.2f"),
+        "exit_dt": "Exit Date/Time",
+        "duration": "Duration", 
+        "notes": "Notes"
+    })
 
     styled_df = df_view2.style.format({
         "entry_price": "${:,.2f}",
@@ -129,24 +164,14 @@ else:
         "exit_price": "${:,.2f}",
         "exit_commissions": "${:,.2f}",
     }).set_properties(
-        subset=["entry_price", "entry_commissions", "exit_price", "exit_commissions", "pnl"],
+        subset=["entry_price", "entry_commissions", "exit_price", "exit_commissions", "pnl", "duration"],
         **{"text-align": "right"}
     ).map(pnl_color, subset="pnl")
     logger.debug("closed_df styling took %.2f seconds", time.time()-start)
 
     st.dataframe(
         styled_df, 
-        use_container_width=True,
-        column_config={
-            "trade_desc": "Trade Details",
-            "units": st.column_config.NumberColumn("units", format="%0.2f"),
-            "pnl": st.column_config.NumberColumn("P&L", width=75, format="$%0.2f"),
-            "entry_price": st.column_config.NumberColumn("Entry Price", width=50, format="$%0.2f"),
-            "entry_commissions": st.column_config.NumberColumn("Entry Comm", width=30, format="$%0.2f"),
-            "entry_dt": "Entry Date/Time",
-            "exit_price": st.column_config.NumberColumn("Exit Price", width=50, format="$%0.2f"),
-            "exit_commissions": st.column_config.NumberColumn("Exit Comm", width=30, format="$%0.2f"),
-            "exit_dt": "Exit Date/Time",
-            "notes": "Notes"
-        }
+        hide_index=True,
+        width='stretch',
+        column_config=base_config
     )
