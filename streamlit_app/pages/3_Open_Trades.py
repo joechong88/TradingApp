@@ -205,12 +205,6 @@ with col2:
 if "refresh_nonce" not in st.session_state:
     st.session_state.refresh_nonce = 0
 
-# Refresh button
-if st.button("🔄 Refresh Prices"):
-    st.session_state.qm.reset()     # fully reset IBKR and cache
-    st.cache_data.clear()
-    st.rerun()
-
 # time the execution
 start = time.time()
 logger.debug("fetch_trades() INITIATED")
@@ -268,6 +262,54 @@ else:
             "stock_ask"
         ]
         df_view2 = df_view[desired_order]
+
+        # --- 2a. Calculate Aggregates, us from df_full
+        if not df_full.empty:
+            is_option = df_full["strikeprice"].notna()
+
+            df_options = df_full[is_option]
+            df_stocks = df_full[~is_option]
+
+            opt_pnl = df_options["pnl"].sum()
+            stk_pnl = df_stocks["pnl"].sum()
+
+            opt_count = len(df_options)
+            stk_count = len(df_stocks)
+
+            total_open_pnl = opt_pnl + stk_pnl
+
+
+        else:
+            opt_pnl = stk_pnl = total_open_pnl = 0.0
+            opt_count = stk_count = 0
+            itm_count = 0
+            total_trades = 0
+
+        # --- 2b. Display the Top Dashboard Stats for Open Trades ---
+        col_tot, col_stk, col_opt = st.columns(3)
+
+        with col_tot:
+            # Use delta to show color (Green for +, Red for -) automatically
+            st.metric(
+                label = "Total Open Trades P&L",
+                value = f"${total_open_pnl:,.2f}",
+                delta = f"${total_open_pnl:,.2f}"
+            )
+        with col_stk:
+            st.metric(
+                label = "Stocks P&L",
+                value = f"${stk_pnl:,.2f}",
+                delta = f"{stk_count} Positions",
+                delta_color = "off"
+            )
+        with col_opt:
+            st.metric(
+                label = "Options P&L",
+                value = f"${opt_pnl:,.2f}",
+                delta = f"{opt_count} Positions",
+                delta_color = "off"
+            )
+        st.divider()
 
         # --- 3. Styled them accordingly, before sending to rendering the table
         start = time.time()
