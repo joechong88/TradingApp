@@ -12,4 +12,6 @@ build/
 data/cache
 data/logs
 
+tests/
+
 .streamlit/
