@@ -204,7 +204,7 @@ with st.form("new_trade_form", clear_on_submit=False):
                 st.session_state.last_added = f"{strategy} {symbol} at {entry_price}"
             
             st.success(f"✅ Trade Confirmed: {st.session_state.last_added}")
-            st.ballons()    # Visual confirmation
+            #st.ballons()    # Visual confirmation
             asyncio.sleep(1)    # Brief pause so user sees success
             st.rerun()  # <-- ensures fresh display
 

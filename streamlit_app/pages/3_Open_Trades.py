@@ -1,4 +1,5 @@
 import asyncio
+from utils.ui_components import render_top_metrics
 
 # Ensure an event loop exists before anything else
 try:
@@ -286,29 +287,7 @@ else:
             total_trades = 0
 
         # --- 2b. Display the Top Dashboard Stats for Open Trades ---
-        col_tot, col_stk, col_opt = st.columns(3)
-
-        with col_tot:
-            # Use delta to show color (Green for +, Red for -) automatically
-            st.metric(
-                label = "Total Open Trades P&L",
-                value = f"${total_open_pnl:,.2f}",
-                delta = f"${total_open_pnl:,.2f}"
-            )
-        with col_stk:
-            st.metric(
-                label = "Stocks P&L",
-                value = f"${stk_pnl:,.2f}",
-                delta = f"{stk_count} Positions",
-                delta_color = "off"
-            )
-        with col_opt:
-            st.metric(
-                label = "Options P&L",
-                value = f"${opt_pnl:,.2f}",
-                delta = f"{opt_count} Positions",
-                delta_color = "off"
-            )
+        render_top_metrics(total_open_pnl, stk_pnl, stk_count, opt_pnl, opt_count)
         st.divider()
 
         # --- 3. Styled them accordingly, before sending to rendering the table
