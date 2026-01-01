@@ -1,6 +1,6 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, func
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from dotenv import load_dotenv
 from typing import List, Optional, Dict, Any
 import pandas as pd
@@ -33,6 +33,55 @@ class Trade(Base):
 
     # Derived snapshots (optional)
     notes = Column(String, nullable=True)
+
+class TradeGroup(Base):
+    __tablename__ = "trade_groups"
+    id = Column(Integer, primary_key=True)
+    strategy_name = Column(String)
+    status = Column(String, default="Open")
+    notes = Column(String) # Overall strategy thesis (e.g., "Earnings play")
+    legs = relationship("Leg", back_populates="group")
+
+class Leg(Base):
+    __tablename__ = "legs"
+    id = Column(Integer, primary_key=True)
+    group_id = Column(Integer, ForeignKey("trade_groups.id"))
+    symbol = Column(String)
+    side = Column(String)
+    quantity = Column(Integer)
+    status = Column(String) # Active/Closed/Rolled
+    strikeprice = Column(Float)
+    expiry_dt = Column(String) # YYYYMMDD format
+    option_type = Column(String) # C for Call or P for Put
+    
+    # Permanent Entry Columns
+    entry_date = Column(DateTime)
+    entry_price = Column(Float)
+    entry_commission = Column(Float, default=0.0)
+    
+    # Permanent Exit Columns
+    exit_date = Column(DateTime)
+    exit_price = Column(Float)
+    exit_commission = Column(Float, default=0.0)
+    
+    group = relationship("TradeGroup", back_populates="legs")
+    transactions = relationship("Transaction", back_populates="leg")
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+    id = Column(Integer, primary_key=True)
+    leg_id = Column(Integer, ForeignKey("legs.id"))
+    
+    # Execution Details
+    action = Column(String)  # BTO, STO, BTC, STC
+    quantity = Column(Integer)
+    price = Column(Float)    # The execution price per unit
+    commission = Column(Float, default=0.0) # The total commission for this fill
+    
+    timestamp = Column(DateTime, default=func.now())
+    notes = Column(String)   # Optional: e.g., "Part of a roll"
+    
+    leg = relationship("Leg", back_populates="transactions")
 
 def init_db():
     Base.metadata.create_all(bind=engine)

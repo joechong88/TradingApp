@@ -268,3 +268,37 @@ def compute_trade_duration(df, entry_col="entry_dt", exit_col="exit_dt"):
 
     df["duration"] = durations
     return df
+
+def calculate_strategy_cost(legs, contract_multiplier=100):
+    """
+    Calculates the total net cost (basis) for a group of legs.
+    Positive result = Net Debit (You paid money)
+    Negative result = Net Credit (You received money)
+    """
+    gross_basis = 0.0
+    net_basis = 0.0
+    comm = 0.0
+
+    for leg in legs:
+        # Financial Value = (Price * Multiplier * Quantity)
+        price = leg.entry_price or 0.0
+        qty = leg.quantity or 0
+        mult = contract_multiplier or 100
+
+        leg_cash_value = (price * mult * qty)
+        
+        gross_basis += leg_cash_value
+        comm += (leg.entry_commission or 0.0)
+    
+    # Total out-of-pocket or into-pocket
+    is_debit = gross_basis > 0
+    direction_label = "Net Debit" if is_debit else "Net Credit"
+    net_basis = (gross_basis - comm) if is_debit else (gross_basis + comm)
+
+    return {
+        "raw_basis": gross_basis,
+        "is_debit": is_debit,
+        "label": direction_label,
+        "formatted_abs": f"${abs(net_basis):,.2f}", # Added comma for thousands
+        "commissions": comm
+    }
