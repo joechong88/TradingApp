@@ -14,14 +14,16 @@ import pandas as pd
 from datetime import datetime, date, UTC
 import pytz
 import time
+import matplotlib
 
 from sqlalchemy.orm import Session
 from db.models import SessionLocal, Trade
-from utils.trades import calculate_pnl, trades_to_df, get_qm, build_trade_label
+from utils.trades import trades_to_df, get_qm, build_trade_label
 from utils.market_clock import show_market_clock
-from utils.formatters import format_currency, format_pnl, format_datetime, pnl_color, expiry_color
+from utils.formatters import format_currency, format_pnl, format_datetime
 from utils.logger import get_logger
 from utils.quote_manager import QuoteManager
+from utils.ui_components import get_styled_trade_df, render_close_trade_form
 
 # --- Initiate logging
 logger = get_logger(__name__)
@@ -240,31 +242,7 @@ else:
         hidden_cols = ["symbol", "strategy", "strikeprice", "expiry_dt"]
         df_view = df_full.drop(columns=hidden_cols)
 
-        # --- 2. Re-order the columns, this must be done at the df, not the styler
-        desired_order = [
-            "trade_desc",
-            "units",
-            "pnl",
-            "itm_status",
-            "days_to_expiry",
-            "option_last",
-            "stock_last",
-            "entry_price",
-            "entry_commissions",
-            "entry_dt",
-            "exit_price",
-            "exit_commissions",
-            "exit_dt",
-            "notes",
-            "live_price",
-            "option_bid",
-            "option_ask",
-            "stock_bid",
-            "stock_ask"
-        ]
-        df_view2 = df_view[desired_order]
-
-        # --- 2a. Calculate Aggregates, us from df_full
+        # --- 2. Calculate Aggregates, use from df_full
         if not df_full.empty:
             is_option = df_full["strikeprice"].notna()
 
@@ -290,49 +268,17 @@ else:
         render_top_metrics(total_open_pnl, stk_pnl, stk_count, opt_pnl, opt_count)
         st.divider()
 
-        # --- 3. Styled them accordingly, before sending to rendering the table
+        # -- 3. Styled them accordingly, before sending to rendering the table
         start = time.time()
         logger.debug("open_df styling INITIATED")
-        styled_df = df_view2.style.format({
-            "option_last": "${:,.2f}",
-            "stock_last": "${:,.2f}",
-            "entry_price": "${:,.2f}",
-            "entry_commissions": "${:,.2f}",
-            "pnl": "${:,.2f}",
-            "days_to_expiry": "{:,.0f}"
-        }).set_properties(
-            subset=["option_last", "stock_last", "entry_price", "entry_commissions", "pnl"],
-            **{"text-align": "right"}
-        ).map(pnl_color, subset="pnl").map(expiry_color, subset="days_to_expiry").apply(itm_gradient, axis=1)
+        if not df_view.empty:
+            styled_df, col_config = get_styled_trade_df(df_view, is_open=True)
+        st.dataframe(
+            styled_df,
+            hide_index=True,
+            width='stretch',
+            column_config=col_config
+        ) 
         logger.debug("open_df styling took %.2f seconds", time.time()-start)
-        render_trade_table(styled_df, compact_mode)
-
         st.divider()
-        st.subheader("Close an open trade")
-        
-        # Use the label in your selectbox, but return the id
-        trade_map = dict(zip(open_df["trade_desc"], open_df["id"]))
-        sel_label = st.selectbox("Select trade ID to close", list(trade_map.keys()))
-        sel_id = trade_map[sel_label]
-        exit_price = st.number_input("Exit price", min_value=0.0, step=0.01)
-        exit_commissions = st.number_input("Exit Commissions", min_value=0.0, step=0.01)
-
-        st.date_input("Exit date (ET assumed)", key="exit_date")
-        st.text_input("Exit time (HH:MM:SS) (ET assumed)", key="exit_time")
-
-        if st.button("Close trade"):
-            with SessionLocal() as db:  # type: Session
-                t = db.query(Trade).filter(Trade.id == sel_id).first()
-                if not t:
-                    st.error("Trade not found.")
-                else:
-                    exit_dt = datetime.combine(
-                        st.session_state.exit_date,
-                        datetime.strptime(st.session_state.exit_time, "%H:%M:%S").time()
-                    )
-                    t.exit_price = exit_price
-                    t.exit_dt = exit_dt
-                    t.exit_commissions = exit_commissions
-                    t.is_open = False
-                    db.commit()
-                    st.success(f"Trade {sel_id} closed.")
+        render_close_trade_form(open_df)

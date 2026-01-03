@@ -7,6 +7,7 @@ from typing import Dict, List
 from db.models import Trade
 from utils.logger import get_logger
 from utils.quote_manager import QuoteManager
+import config_loader
 
 @st.cache_resource(show_spinner=False)
 def get_qm() -> QuoteManager:
@@ -19,11 +20,16 @@ def get_qm() -> QuoteManager:
 # --- Initiate logging
 logger = get_logger(__name__)
 
-def calculate_pnl(data, live_price: float = None) -> float:
+def calculate_pnl(data, live_price: float = None) -> tuple:
     """
     Unified P&L calculator for both Trade objects and DataFrame rows.
     Handles Stocks (1x) and Options (100x).
+    Returns (net_pnl, pnl_pct)
     """
+    # 0. Load fresh config to catch updates from the Settings page
+    config = config_loader.load_config()
+    stock_pnl_target = config["targets"]["stock_pnl_target"]
+
     # 1. Handle Input Type (Object vs Dictionary/Row)
     # This allows the function to work with trade_obj.attribute or row['column']
     if hasattr(data, "__getitem__"):  # It's a dict or pandas row
@@ -47,12 +53,13 @@ def calculate_pnl(data, live_price: float = None) -> float:
     price_out = live_price if live_price is not None else exit_price
     
     if price_out is None or entry_price is None:
-        return 0.0
+        return 0.0, 0.0 # return 2 zeros instead of one
 
     # 3. Determine Multiplier
     # Logic: If specifically 'long'/'short' -> Stock. 
     # Otherwise, if it has option attributes -> Option.
-    if strategy in ["long", "short"]:
+    is_stock = strategy in ["long", "short"]
+    if is_stock:
         multiplier = 1
     elif has_option_attrs or strategy not in ["", "none"]:
         multiplier = 100
@@ -62,8 +69,20 @@ def calculate_pnl(data, live_price: float = None) -> float:
     # 4. Final Calculation
     gross_pnl = (price_out - entry_price) * units * multiplier
     net_pnl = gross_pnl - entry_comm - exit_comm
-    
-    return net_pnl
+
+    # 5. Calculate P&L %
+    pnl_pct = 0.0
+    if is_stock:
+        # Stock Rule: progress towards the daily target saved in config.toml
+        pnl_pct = (net_pnl / stock_pnl_target) * 100
+    else:
+        # Option Rule: Net P&L / Initial Cost
+        # If units is negative, it means CSP or CC, hence need to flip the sign to calculate
+        initial_premium = abs(entry_price * units) * 100
+        if initial_premium != 0:    # safety guide
+            pnl_pct = (net_pnl / initial_premium) * 100
+
+    return net_pnl, pnl_pct
 
 def calc_pdh_pdl(df: pd.DataFrame) -> Dict[str, float]:
     if df.empty:
@@ -198,6 +217,7 @@ def trades_to_df(trades: List[Trade], live: bool = True, qm=None) -> pd.DataFram
                         logger.error("Stock quote failed for %s: %s", t.symbol, e)
 
         # Build row
+        net_pnl, pnl_pct = calculate_pnl(t, live_price=live_price)
         rows.append({
             "id": t.id,
             "symbol": t.symbol,
@@ -222,7 +242,8 @@ def trades_to_df(trades: List[Trade], live: bool = True, qm=None) -> pd.DataFram
             "stock_ask": stock_ask,
             "itm_status": itm_status,
             "live_price": live_price,
-            "pnl": calculate_pnl(t, live_price=live_price)  # unified P&L in dataframe
+            "pnl": net_pnl,
+            "pnl_pct": pnl_pct
         })
 
     # Define all expected columns' header
@@ -231,7 +252,7 @@ def trades_to_df(trades: List[Trade], live: bool = True, qm=None) -> pd.DataFram
         "entry_price", "expected_rr", "entry_dt", "entry_commissions",
         "is_open", "exit_price", "exit_dt", "exit_commissions", "notes", 
         "option_last", "option_bid", "option_ask", "stock_last", "stock_bid", "stock_ask",
-        "itm_status", "live_price", "pnl"
+        "itm_status", "live_price", "pnl", "pnl_pct"
     ]
 
     return pd.DataFrame(rows, columns=columns)

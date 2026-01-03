@@ -15,3 +15,5 @@ data/logs
 tests/
 
 .streamlit/
+
+config.toml

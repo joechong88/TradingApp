@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from utils.trades import calculate_strategy_cost
 
 # --- Function to display the top header dashboard metrics for Open Trades
@@ -135,3 +136,154 @@ def render_complex_strategy_cards(complex_groups):
                     # In the future, you can trigger a callback or session_state change here
                     st.session_state[f"confirm_close_{group.id}"] = True
                     st.warning(f"Closing Group {group.id}...")
+
+def get_styled_trade_df(df: pd.DataFrame, is_open: bool = True):
+    """
+    Presentation Logic: Handles column ordering, renaming, 
+    styling, and Streamlit column configurations.
+    """
+    from utils.formatters import pnl_color
+
+    if df.empty:
+        return None, {}
+
+    # 1. Define Column Order based on trade state
+    if is_open:
+        # Columns specific to the Open Trades view
+        desired_order = [
+            "id", "trade_desc", "pnl", "pnl_pct", "itm_status", "days_to_expiry", 
+            "option_last", "stock_last", "live_price",  
+            "entry_price", "units", "entry_commissions", "entry_dt"
+        ]
+    else:
+        # Columns specific to the CLosed Trades view
+        desired_order = [
+            "id", "trade_desc", "units", "pnl", "pnl_pct", "entry_price", 
+            "exit_price", "entry_commissions", "exit_commissions", 
+            "entry_dt", "exit_dt", "duration"
+        ]
+    
+    desired_order += ["notes"]
+    
+    # Filter only columns that actually exist in the dataframe
+    display_cols = [c for c in desired_order if c in df.columns]
+    df_view = df[display_cols].copy()
+
+    # Sort Logic
+    if not is_open and "exit_dt" in df_view.columns:
+        df_view = df_view.sort_values("exit_dt", ascending=False)
+    elif is_open and "days_to_expiry" in df_view.columns:
+        df_view = df_view.sort_values("days_to_expiry", ascending=True)
+
+    # 2. Define Streamlit Column Configs (Labels and Formats)
+    column_config = {
+        "trade_desc": st.column_config.TextColumn("Trade Details", width="medium"),
+        "itm_status": "ITM/OTM",
+        "units": st.column_config.NumberColumn("Units", format="%.2f"),
+        "pnl": st.column_config.NumberColumn("P&L", format="$%.2f"),
+        "pnl_pct": st.column_config.NumberColumn("P&L %", format="%d%%"),
+        "days_to_expiry": st.column_config.NumberColumn("Days to Expiry", format="%d"),
+        "stock_last": st.column_config.NumberColumn("Stock Price (Last)", format="$%.2f"),
+        "live_price": st.column_config.NumberColumn("Live Price", format="$%.2f"),
+        "entry_price": st.column_config.NumberColumn("Entry Price", format="$%.2f"),
+        "entry_commissions": st.column_config.NumberColumn("Entry Comm", format="$%.2f"),
+        "exit_price": st.column_config.NumberColumn("Exit Price", format="$%.2f"),
+        "exit_commissions": st.column_config.NumberColumn("Exit Comm", format="$%.2f"),
+        "entry_dt": "Entry Date/Time",
+        "exit_dt": "Exit Date/Time",
+        "duration": "Duration",
+        "notes": "Notes"
+    }
+
+    # 3. Apply Pandas Styling (Colors and Gradients)
+    from utils.formatters import pnl_color, expiry_color
+    styled = df_view.style.format({
+        "entry_price": "${:,.2f}",
+        "entry_commissions": "${:,.2f}",
+        "exit_price": "${:,.2f}",
+        "exit_commissions": "${:,.2f}",
+        "pnl": "${:,.2f}",
+        "pnl_pct": "{:.0f}%",
+        "option_last": "${:,.2f}",
+        "stock_last": "${:,.2f}",
+        "live_price": "${:,.2f}"
+    })
+    
+    # apply text alignment
+    numeric_cols = [c for c in ["pnl", "pnl_pct", "entry_price", "exit_price", "option_last", "stock_last", "live_price"] if c in df_view.columns]
+    styled = styled.set_properties(subset=numeric_cols, **{"text-align": "right"})
+
+    # apply conditional coloring
+    if "pnl" in df_view.columns:
+        styled = styled.map(pnl_color, subset="pnl")
+    
+    if "days_to_expiry" in df_view.columns:
+        styled = styled.map(expiry_color, subset="days_to_expiry")
+    
+    # apply the P&L % gradient
+    if "pnl_pct" in df_view.columns:
+        styled = styled.background_gradient(
+            subset=["pnl_pct"],
+            cmap="RdYlGn",
+            vmin=0, 
+            vmax=80
+        )
+
+    return styled, column_config
+
+import streamlit as st
+from datetime import datetime
+from db.models import SessionLocal, Trade
+
+def render_close_trade_form(open_df):
+    """
+    Renders the UI form to close an open trade.
+    Expects a DataFrame that includes 'id', 'trade_desc', and 'days_to_expiry'.
+    """
+    st.subheader("Close an open trade")
+
+    if open_df.empty:
+        st.info("No open trades to close.")
+        return
+
+    # --- 1. Align sorting with the Table ---
+    # We sort by days_to_expiry (ascending) to match the UI table
+    sort_df = open_df.sort_values("days_to_expiry", ascending=True).copy()
+    
+    sort_df["display_name"] = sort_df["id"].astype(str) + " | " + sort_df["trade_desc"]
+    trade_map = dict(zip(sort_df["display_name"], sort_df["id"]))
+    
+    # --- 2. Render Form Inputs ---
+    sel_label = st.selectbox("Select trade ID to close", list(trade_map.keys()))
+    sel_id = trade_map[sel_label]
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        exit_price = st.number_input("Exit price", min_value=0.0, step=0.01)
+        st.date_input("Exit date (ET assumed)", key="exit_date")
+    with col2:
+        exit_commissions = st.number_input("Exit Commissions", min_value=0.0, step=0.01)
+        st.text_input("Exit time (HH:MM:SS) (ET assumed)", key="exit_time")
+
+    # --- 3. Process Closing ---
+    if st.button("Close trade", use_container_width=True):
+        try:
+            # Parse the time string
+            time_obj = datetime.strptime(st.session_state.exit_time, "%H:%M:%S").time()
+            exit_dt = datetime.combine(st.session_state.exit_date, time_obj)
+            
+            with SessionLocal() as db:
+                t = db.query(Trade).filter(Trade.id == sel_id).first()
+                if not t:
+                    st.error("Trade not found in database.")
+                else:
+                    t.exit_price = exit_price
+                    t.exit_dt = exit_dt
+                    t.exit_commissions = exit_commissions
+                    t.is_open = False
+                    db.commit()
+                    st.success(f"Trade {sel_id} closed successfully!")
+                    st.balloons()
+                    st.rerun() # Refresh to update the table
+        except ValueError:
+            st.error("Invalid time format. Please use HH:MM:SS.")

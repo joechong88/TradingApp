@@ -20,6 +20,7 @@ from utils.trades import trades_to_df, build_trade_label, compute_trade_duration
 from utils.market_clock import show_market_clock
 from utils.formatters import format_currency, format_pnl, format_datetime, pnl_color, expiry_color
 from utils.logger import get_logger
+from utils.ui_components import get_styled_trade_df
 
 @st.cache_data(ttl=60)
 def fetch_trades():
@@ -52,7 +53,7 @@ def load_closed_trades(trades_df: pd.DataFrame) -> pd.DataFrame:
 
     # Ensure numeric types
     for col in ["option_last", "stock_last", "entry_price","exit_price","strikeprice",
-                "entry_commissions","exit_commissions","pnl"]:
+                "entry_commissions","exit_commissions","pnl", "pnl_pct"]:
         closed_df[col] = pd.to_numeric(closed_df[col], errors="coerce")
 
     closed_df = compute_trade_duration(closed_df)
@@ -118,60 +119,13 @@ else:
     ]
     df_view = df_full.drop(columns=hidden_cols)
 
-    # --- 2. Re-order the columns, this must be done at the df, not the styler
-    desired_order = [
-        "trade_desc",
-        "units",
-        "pnl",
-        "entry_price",
-        "entry_commissions",
-        "entry_dt",
-        "exit_price",
-        "exit_commissions",
-        "exit_dt",
-        "duration",
-        "notes"
-    ]
-    df_view2 = df_view[desired_order]
-
-    # sort by exit-date/time
-    df_view2 = df_view2.sort_values("exit_dt", ascending=False)
-
-    auto_widths = compute_widths(df_view2)
-    base_config = {
-        col: st.column_config.Column(width=auto_widths[col])
-        for col in df_view2.columns
-    }
-
-    base_config.update({
-        "trade_desc": "Trade Details",
-        "units": st.column_config.NumberColumn("units", format="%0.2f"),
-        "pnl": st.column_config.NumberColumn("P&L", format="$%0.2f"),
-        "entry_price": st.column_config.NumberColumn("Entry Price", format="$%0.2f"),
-        "entry_commissions": st.column_config.NumberColumn("Entry Comm", format="$%0.2f"),
-        "entry_dt": "Entry Date/Time",
-        "exit_price": st.column_config.NumberColumn("Exit Price", format="$%0.2f"),
-        "exit_commissions": st.column_config.NumberColumn("Exit Comm", format="$%0.2f"),
-        "exit_dt": "Exit Date/Time",
-        "duration": "Duration", 
-        "notes": "Notes"
-    })
-
-    styled_df = df_view2.style.format({
-        "entry_price": "${:,.2f}",
-        "entry_commissions": "${:,.2f}",
-        "pnl": "${:,.2f}",
-        "exit_price": "${:,.2f}",
-        "exit_commissions": "${:,.2f}",
-    }).set_properties(
-        subset=["entry_price", "entry_commissions", "exit_price", "exit_commissions", "pnl", "duration"],
-        **{"text-align": "right"}
-    ).map(pnl_color, subset="pnl")
-    logger.debug("closed_df styling took %.2f seconds", time.time()-start)
+    if not df_view.empty:
+        styled_df, col_config = get_styled_trade_df(df_view, is_open=False)
 
     st.dataframe(
         styled_df, 
         hide_index=True,
         width='stretch',
-        column_config=base_config
+        column_config=col_config
     )
+    logger.debug("closed_df styling took %.2f seconds", time.time()-start)
