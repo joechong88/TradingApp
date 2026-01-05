@@ -1,5 +1,6 @@
 import toml  # Available in Python 3.11+
 import os
+import streamlit as st
 
 CONFIG_PATH = "config.toml"
 
@@ -22,7 +23,7 @@ def load_config():
     return {"targets": {"daily_stock_pnl": 500.0}}
     
 
-def save_config(config_dict):
+def save_config_local(config_dict):
     try:
         with open(CONFIG_PATH, "w") as f:
             toml.dump(config_dict, f)
