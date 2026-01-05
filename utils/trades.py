@@ -7,7 +7,7 @@ from typing import Dict, List
 from db.models import Trade
 from utils.logger import get_logger
 from utils.quote_manager import QuoteManager
-import config_loader
+from utils.config_loader import load_config, save_config_local
 
 @st.cache_resource(show_spinner=False)
 def get_qm() -> QuoteManager:
@@ -27,7 +27,7 @@ def calculate_pnl(data, live_price: float = None) -> tuple:
     Returns (net_pnl, pnl_pct)
     """
     # 0. Load fresh config to catch updates from the Settings page
-    config = config_loader.load_config()
+    config = load_config()
     stock_pnl_target = config["targets"]["stock_pnl_target"]
 
     # 1. Handle Input Type (Object vs Dictionary/Row)

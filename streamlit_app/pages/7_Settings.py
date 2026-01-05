@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.config_loader import load_config, save_config
+from utils.config_loader import load_config, save_config_local
 import os
 
 st.title("⚙️ App Settings")
