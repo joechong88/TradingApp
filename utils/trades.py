@@ -5,9 +5,9 @@ import time
 import threading
 from typing import Dict, List
 from db.models import Trade
-from utils.logger import get_logger
-from utils.quote_manager import QuoteManager
-from utils.config_loader import load_config, save_config_local
+from . import get_logger
+from . import QuoteManager
+from . import load_config, save_config_local
 
 @st.cache_resource(show_spinner=False)
 def get_qm() -> QuoteManager:
