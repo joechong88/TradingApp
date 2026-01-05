@@ -1,5 +1,15 @@
 import asyncio
+import sys
+import os
 
+# 1. Get the absolute path to the directory two levels up from this file
+# This takes you from streamlit_app/pages/ -> streamlit_app/ -> Root
+root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+
+# 2. Add that root path to sys.path so 'db' and 'utils' can be found
+if root_path not in sys.path:
+    sys.path.insert(0, root_path)
+    
 # Ensure an event loop exists before anything else
 try:
     asyncio.get_running_loop()
@@ -63,6 +73,7 @@ if st.sidebar.button("Load Calendar Spread"):
     st.session_state.l1_type = "Put"
     st.session_state.l1_qty = -4
     st.session_state.l1_price = 9.16
+
     st.session_state.l1_comm = 1.33
     
     # Leg 2: Long Put (BTO)
@@ -121,7 +132,7 @@ def render_trades(flat_trades, complex_groups):
                     if t.strikeprice and t.expiry_dt:                        
                         type = f"**Type:** Option ({t.strategy}) {t.expiry_dt} {t.strikeprice}" 
                     else:
-                        type = "**Type:** Stock ({t.strategy})"            
+                        type = f"**Type:** Stock ({t.strategy})"            
                     details = f"{t.symbol} | {type}" 
                     st.write(details)
                 with c2:

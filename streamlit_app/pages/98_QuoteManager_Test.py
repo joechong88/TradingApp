@@ -1,4 +1,14 @@
 import asyncio
+import sys
+import os
+
+# 1. Get the absolute path to the directory two levels up from this file
+# This takes you from streamlit_app/pages/ -> streamlit_app/ -> Root
+root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+
+# 2. Add that root path to sys.path so 'db' and 'utils' can be found
+if root_path not in sys.path:
+    sys.path.insert(0, root_path)
 
 # ✅ Ensure Streamlit’s ScriptRunner thread has an event loop
 try:
