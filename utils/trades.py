@@ -1,3 +1,15 @@
+import asyncio
+import sys
+import os
+
+# 1. Get the absolute path to the directory two levels up from this file
+# This takes you from streamlit_app/pages/ -> streamlit_app/ -> Root
+root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+
+# 2. Add that root path to sys.path so 'db' and 'utils' can be found
+if root_path not in sys.path:
+    sys.path.insert(0, root_path)
+
 import pandas as pd
 import logging
 import streamlit as st
@@ -5,9 +17,9 @@ import time
 import threading
 from typing import Dict, List
 from db.models import Trade
-from . import get_logger
-from . import QuoteManager
-from . import load_config, save_config_local
+from utils.logger import get_logger
+from utils.quote_manager import QuoteManager
+from utils.config_loader import load_config, save_config_local
 
 @st.cache_resource(show_spinner=False)
 def get_qm() -> QuoteManager:
