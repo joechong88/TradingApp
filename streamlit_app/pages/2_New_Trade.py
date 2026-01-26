@@ -25,7 +25,7 @@ from sqlalchemy import desc
 from datetime import date, datetime, UTC
 from db.models import SessionLocal, Trade, TradeGroup, Leg, Transaction
 from utils.validation import validate_entry_timestamp
-from utils.trades import trades_to_df, calculate_pnl
+from utils.trades import trades_to_df, calculate_pnl, get_all_open_positions
 from utils.market_clock import show_market_clock
 from utils.formatters import is_valid_expiry
 from utils.ui_components import render_complex_strategy_cards
@@ -91,24 +91,6 @@ if st.sidebar.button("Load Calendar Spread"):
 # 1. Cached DB fetch
 # ---------------------------------------------------------
 @st.cache_data(ttl=30)
-def load_open_trades():
-    with SessionLocal() as db:
-        # Get Flat trades
-        flat_trades = (
-            db.query(Trade)
-            .filter(Trade.is_open == True)
-            .order_by(desc(Trade.entry_dt))
-            .all()
-        )
-
-        # Get Complex trades (eager load legs and transactions to avoid errors)
-        complex_groups = (
-            db.query(TradeGroup)
-            .options(joinedload(TradeGroup.legs).joinedload(Leg.transactions))
-            .filter(TradeGroup.status == "Open")
-            .all()
-        )
-    return flat_trades, complex_groups
 
 # ---------------------------------------------------------
 # 2. Display trades (pure UI)
@@ -117,14 +99,14 @@ def render_trades(flat_trades, complex_groups):
     """
     Renders both flat trades and complex strategy trades
     """
-    if not flat_trades:
+    if flat_trades.empty:
         st.info("No open trades.")
         return
 
     # --- Section 2: Simple Trades (Flat)
-    if flat_trades:
+    if not flat_trades.empty:
         st.header("Simple Trades")
-        for t in flat_trades:
+        for t in flat_trades.itertuples(index=False):
             with st.container(border=True):
                 c1, c2, c3 = st.columns([2, 1, 2])
                 with c1:
@@ -144,7 +126,7 @@ def render_trades(flat_trades, complex_groups):
                     st.write(f"**Notes:** {t.notes}")
 
     # --- Section 1: Complex Strategies (Relational) ---
-    if complex_groups:
+    if not complex_groups.empty:
         render_complex_strategy_cards(complex_groups)
     
 # ---------------------------------------------------------
@@ -443,7 +425,13 @@ else:
 
                 with SessionLocal() as db:
                     # 1. Create the Parent Group
-                    new_group = TradeGroup(strategy_name=strat_name, status="Open")
+                    new_group = TradeGroup(
+                        strategy_name=strat_name, 
+                        status="Open",
+                        notes=strat_note,
+                        updated_at=strat_dt,
+                        created_at=strat_dt
+                    )
                     db.add(new_group)
                     db.flush() 
 
@@ -497,5 +485,5 @@ else:
 # 7. Display updated trades
 # ---------------------------------------------------------
 st.header("Open Trades")
-flat_trades, complex_groups = load_open_trades()
+flat_trades, complex_groups = get_all_open_positions()
 render_trades(flat_trades, complex_groups)

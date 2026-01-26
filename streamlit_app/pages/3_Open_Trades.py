@@ -28,12 +28,12 @@ import matplotlib
 
 from sqlalchemy.orm import Session
 from db.models import SessionLocal, Trade
-from utils.trades import trades_to_df, get_qm, build_trade_label
+from utils.trades import trades_to_df, get_qm, build_trade_label, get_all_open_positions
 from utils.market_clock import show_market_clock
 from utils.formatters import format_currency, format_pnl, format_datetime
 from utils.logger import get_logger
 from utils.quote_manager import QuoteManager
-from utils.ui_components import get_styled_trade_df, render_close_trade_form
+from utils.ui_components import get_styled_trade_df, render_close_trade_form, render_complex_strategy_cards, roll_short_call_dialog
 
 # --- Initiate logging
 logger = get_logger(__name__)
@@ -43,7 +43,52 @@ logger.debug("Starting Open Trades page")
 if "qm" not in st.session_state:
     st.session_state.qm = QuoteManager()
 
-compact_mode = st.sidebar.toggle("Compact Mode", value=True)
+# Initialize the refresh counter in session state if it doesn't exist
+if "refresh_count" not in st.session_state:
+    st.session_state.refresh_count = 0
+
+if "exit_date" not in st.session_state:
+    st.session_state.exit_date = datetime.now(UTC).date()
+if "exit_time" not in st.session_state:
+    st.session_state.exit_time = "16:00:00"
+
+if "last_updated_dt" not in st.session_state:
+    st.session_state.last_updated_dt = None
+
+# Sidebar Refresh Button
+with st.sidebar:
+    if st.sidebar.button("🔄 Refresh Live Quotes", width='stretch'):
+        st.session_state.refresh_count += 1
+        # No need for st.rerun() as the button click triggers a rerun automatically
+        st.session_state.last_updated_dt = datetime.now(UTC)
+
+    if isinstance(st.session_state.last_updated_dt, datetime):
+        # Obtain imestamp to current time (ET), and current KUL time
+        tz_et = pytz.timezone('US/Eastern')
+        tz_kul = pytz.timezone('Asia/Kuala_Lumpur')
+
+        dt_et = st.session_state.last_updated_dt.astimezone(tz_et)
+        dt_kul = st.session_state.last_updated_dt.astimezone(tz_kul)
+
+        # Calculate age in seconds
+        age_seconds = (datetime.now(UTC) - st.session_state.last_updated_dt).total_seconds()
+        
+        # Apply conditional coloring (Red if > 10 mins)
+        time_color = "red" if age_seconds > 600 else "gray"
+        
+        st.caption(f"**Last Sync (Market):** {dt_et.strftime('%H:%M:%S')} ET")
+        st.caption(f"**Last Sync (Local):** {dt_kul.strftime('%H:%M:%S')} KUL")
+
+        if age_seconds > 600:
+            st.error(f"⚠️ Quotes are {(age_seconds/60):.0f}m old")
+    else:
+        st.caption("No data synced yet.")
+
+#@st.cache_data(ttl=90) # Cache live quotes for 60 seconds
+@st.cache_data(show_spinner="Fetching live quotes data....")
+def fetch_cached_positions(_qm, refresh_count):
+    logger.debug("Fetching positions (Refresh Count: {refresh_count})")
+    return get_all_open_positions(qm=_qm)
 
 def get_qm(force_new=False):
     global _qm
@@ -51,41 +96,6 @@ def get_qm(force_new=False):
         _qm = QuoteManager()
     
     return _qm
-
-def fetch_trades():
-    with SessionLocal() as db:  # type: Session
-        trades = db.query(Trade).order_by(Trade.id.desc()).all()
-        return trades
-
-if "exit_date" not in st.session_state:
-    st.session_state.exit_date = datetime.now(UTC).date()
-if "exit_time" not in st.session_state:
-    st.session_state.exit_time = "16:00:00"
-
-# --- Utility: Load and preprocess open trades ---
-#@st.cache_data(ttl=60)   # cache for 60 seconds
-def load_open_trades(trades_df: pd.DataFrame) -> pd.DataFrame:
-    if trades_df.empty:
-        return pd.DataFrame()
-
-    open_df = trades_df[trades_df["is_open"] == True].copy()
-
-    # Format entry datetime
-    if "entry_dt" in open_df.columns:
-        open_df["entry_dt"] = open_df["entry_dt"].apply(format_datetime)
-
-    # Ensure numeric types
-    for col in ["option_last","stock_last","entry_price","strikeprice",
-                "entry_commissions","pnl"]:
-        open_df[col] = pd.to_numeric(open_df[col], errors="coerce")
-
-    # Expiry calculations
-    open_df["expiry_date"] = pd.to_datetime(open_df["expiry_dt"], format="%Y%m%d", errors="coerce")
-    eastern = pytz.timezone("US/Eastern")
-    today_et = pd.Timestamp(datetime.now(eastern).date())
-    open_df["days_to_expiry"] = (open_df["expiry_date"] - today_et).dt.days.clip(lower=0)
-
-    return open_df
 
 def update_expiry_in_db(trade_id: int, new_expiry: str):
     """
@@ -218,37 +228,25 @@ with col2:
 if "refresh_nonce" not in st.session_state:
     st.session_state.refresh_nonce = 0
 
-# time the execution
+# time the execution, retrieve data from database and obtain live quotes
 start = time.time()
-logger.debug("fetch_trades() INITIATED")
-trades = fetch_trades()
-logger.debug("fetch_trades() took %.2f seconds", time.time()-start)
+logger.debug("get_all_open_positions() INITIATED")
+flat_trades, complex_groups = fetch_cached_positions(st.session_state.qm, st.session_state.refresh_count)
+logger.debug("get_all_open_positions() took %.2f seconds", time.time()-start)
 
-# 5. Convert to DataFrame using the refreshed QM
-start = time.time()
-logger.debug("trades_to_df() INITIATED")
-df = trades_to_df(trades, live=True, qm=st.session_state.qm)   # this function will handle all the calculations and retrieval of the right data for stocks and options
-df["trade_desc"] = df.apply(build_trade_label, axis=1) # apply the appropriate labels for closing trades later
+if st.session_state.last_updated_dt is None and not flat_trades.empty:
+    st.session_state.last_updated_dt = datetime.now(UTC)
 
-logger.debug("trades_to_df() took %.2f seconds", time.time()-start)
+# Define Tabs
+tab1, tab2 = st.tabs(["🎯 Single Leg", "🧬 Complex Strategies"])
 
-if df.empty:
-    st.warning("No trades found in the database.")
-    open_df = pd.DataFrame()
-else:
-    start = time.time()
-    logger.debug("load_open_trades() INITIATED")
-    open_df = load_open_trades(df)
-    logger.debug("load_open_trades() took %.2f seconds", time.time()-start)
+with tab1:
+    if not flat_trades.empty:
+        flat_trades["trade_desc"] = flat_trades.apply(build_trade_label, axis=1) # apply the appropriate labels for closing trades later
 
-    st.subheader("Open trades")
-
-    if open_df.empty:
-        st.info("No open trades.")
-    else:
         # Apply styling to fields
         # --- 1. Apply the hidden column
-        df_full = open_df.copy()
+        df_full = flat_trades.copy()
         hidden_cols = ["symbol", "strategy", "strikeprice", "expiry_dt"]
         df_view = df_full.drop(columns=hidden_cols)
 
@@ -266,8 +264,6 @@ else:
             stk_count = len(df_stocks)
 
             total_open_pnl = opt_pnl + stk_pnl
-
-
         else:
             opt_pnl = stk_pnl = total_open_pnl = 0.0
             opt_count = stk_count = 0
@@ -280,8 +276,9 @@ else:
 
         # -- 3. Styled them accordingly, before sending to rendering the table
         start = time.time()
-        logger.debug("open_df styling INITIATED")
+        logger.debug("Open Flat Trades styling INITIATED")
         if not df_view.empty:
+            df_view = df_view.fillna({"live_price": 0.0, "pnl": 0.0, "pnl_pct": 0.0})
             styled_df, col_config = get_styled_trade_df(df_view, is_open=True)
         st.dataframe(
             styled_df,
@@ -289,6 +286,12 @@ else:
             width='stretch',
             column_config=col_config
         ) 
-        logger.debug("open_df styling took %.2f seconds", time.time()-start)
+        logger.debug("Open Flat Trades styling took %.2f seconds", time.time()-start)
         st.divider()
-        render_close_trade_form(open_df)
+        render_close_trade_form(flat_trades)
+    else:
+        st.info("No open trades.")
+        flat_trades = pd.DataFrame()
+
+with tab2:
+    render_complex_strategy_cards(complex_groups)

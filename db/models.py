@@ -40,6 +40,8 @@ class TradeGroup(Base):
     strategy_name = Column(String)
     status = Column(String, default="Open")
     notes = Column(String) # Overall strategy thesis (e.g., "Earnings play")
+    created_at = Column(DateTime)
+    updated_at = Column(DateTime)
     legs = relationship("Leg", back_populates="group")
 
 class Leg(Base):

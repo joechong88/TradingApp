@@ -36,18 +36,17 @@ logger.debug("Starting QuoteManager Test page")
 tests = [
 #    ("TSLA", None, None, None),
 #    ("TSLA", "20260102", 500.0, "C"),
-    ("CRCL", None, None, None),
-    ("CRCL", "20260123", 93.0, "C"),
-    ("SOFI", "20260116", 32.0, "C"),
-    ("CRWD", "20260116", 470.0, "P"),
+    ("AMZN", "20260320", 220.0, "C"),
+    ("AMZN", "20260116", 240.0, "C"),
+#    ("SOFI", "20260116", 32.0, "C"),
+#    ("CRWD", "20260116", 470.0, "P"),
 #    ("NFLX", "20260102", 92.5, "P"),
 #    ("AAPL", "20260123", 290.0, "C"),
-    ("APLD", "20260109", 24.5, "P"),
+#    ("APLD", "20260109", 24.5, "P"),
 #    ("ONDS", "20260102", 7.0, "P"),
 #    ("CLS", "20260102", 290.0, "P"),
 #    ("IREN", "20260102", 41.0, "P"),
-    ("HOOD", "20251226", 120.0, "P"),
-    ("HOOD", "20260320", 120.0, "C"),
+    ("HOOD", "20260320", 120.0, "C")
 ]
 
 st.set_page_config(page_title="QuoteManager Market Data Test", layout="wide")

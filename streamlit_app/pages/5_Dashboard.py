@@ -606,43 +606,10 @@ if df.empty:
     st.stop()
 
 # --- TABS SETUP ---
-tab_annual, tab_monthly = st.tabs(["📊 Annual Performance", "📅 Monthly Calendar View"])
+tab_monthly, tab_annual  = st.tabs(["📅 Monthly Calendar View", "📊 Annual Performance"])
 
 # ---------------------------------------------------------
-# TAB 1: ANNUAL VIEW
-# ---------------------------------------------------------
-with tab_annual:
-    available_years = sorted(set(df["exit_dt"].dt.year), reverse=True)
-    selected_year = st.selectbox("Select Year to Analyze", available_years, key="year_selector_annual")
-
-    df_year = df[df["exit_dt"].dt.year == selected_year].copy()
-    monthly_summary = build_monthly_stats(df_year)
-
-    # Annual Heatmap Blocks
-    st.markdown("### Monthly Performance Summary")
-    render_monthly_calendar(monthly_summary, selected_year)
-
-    st.markdown("---")
-
-    # Annual Rolling Equity
-    st.subheader(f"Equity Curve - {selected_year}")
-    
-    # Filter for NYSE trading days to ensure clean chart
-    schedule = nyse.schedule(start_date=f"{selected_year}-01-01", end_date=f"{selected_year}-12-31")
-    trading_days_year = pd.to_datetime(schedule.index.date)
-    
-    df_year_chart = df_year.copy()
-    df_year_chart["exit_date"] = pd.to_datetime(df_year_chart["exit_dt"]).dt.date
-    df_year_chart = df_year_chart[pd.to_datetime(df_year_chart["exit_date"]).isin(trading_days_year)]
-
-    if not df_year_chart.empty:
-        annual_rolling_chart = build_rolling_12m_equity_chart(df_year_chart)
-        st.altair_chart(annual_rolling_chart, width='stretch')
-    else:
-        st.warning("No trading day data available for this year.")
-
-# ---------------------------------------------------------
-# TAB 2: MONTHLY VIEW
+# TAB 1: MONTHLY VIEW
 # ---------------------------------------------------------
 with tab_monthly:
     # Controls for Month/Year
@@ -704,3 +671,36 @@ with tab_monthly:
         st.altair_chart(chart_month, width='stretch')
     else:
         st.info("No trades closed in this month to display equity curve.")
+
+# ---------------------------------------------------------
+# TAB 2: ANNUAL VIEW
+# ---------------------------------------------------------
+with tab_annual:
+    available_years = sorted(set(df["exit_dt"].dt.year), reverse=True)
+    selected_year = st.selectbox("Select Year to Analyze", available_years, key="year_selector_annual")
+
+    df_year = df[df["exit_dt"].dt.year == selected_year].copy()
+    monthly_summary = build_monthly_stats(df_year)
+
+    # Annual Heatmap Blocks
+    st.markdown("### Monthly Performance Summary")
+    render_monthly_calendar(monthly_summary, selected_year)
+
+    st.markdown("---")
+
+    # Annual Rolling Equity
+    st.subheader(f"Equity Curve - {selected_year}")
+    
+    # Filter for NYSE trading days to ensure clean chart
+    schedule = nyse.schedule(start_date=f"{selected_year}-01-01", end_date=f"{selected_year}-12-31")
+    trading_days_year = pd.to_datetime(schedule.index.date)
+    
+    df_year_chart = df_year.copy()
+    df_year_chart["exit_date"] = pd.to_datetime(df_year_chart["exit_dt"]).dt.date
+    df_year_chart = df_year_chart[pd.to_datetime(df_year_chart["exit_date"]).isin(trading_days_year)]
+
+    if not df_year_chart.empty:
+        annual_rolling_chart = build_rolling_12m_equity_chart(df_year_chart)
+        st.altair_chart(annual_rolling_chart, width='stretch')
+    else:
+        st.warning("No trading day data available for this year.")
