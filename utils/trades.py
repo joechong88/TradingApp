@@ -704,3 +704,22 @@ def fetch_closed_complex_groups():
             .all()
         )
         return groups
+
+def get_blank_leg(index):
+    """Returns a default dictionary for a new leg row."""
+    return {
+        "temp_id": index,
+        "side": "BTO",
+        "symbol": "",
+        "quantity": 1,
+        "option_type": "Call",
+        "strikeprice": 0.0,
+        "expiry_dt": "" # YYYYMMDD
+    }
+
+def validate_complex_group(legs):
+    """Ensures legs have symbols and strikes before saving."""
+    for leg in legs:
+        if not leg['symbol'] or leg['strikeprice'] <= 0:
+            return False
+    return True

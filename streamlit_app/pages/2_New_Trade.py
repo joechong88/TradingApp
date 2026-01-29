@@ -28,7 +28,11 @@ from utils.validation import validate_entry_timestamp
 from utils.trades import trades_to_df, calculate_pnl, get_all_open_positions
 from utils.market_clock import show_market_clock
 from utils.formatters import is_valid_expiry
-from utils.ui_components import render_complex_strategy_cards
+from utils.ui_components import render_complex_strategy_cards, render_dynamic_leg_form
+from utils.logger import get_logger
+
+# --- Initiate logging
+logger = get_logger(__name__)
 
 # Add a Test Button to the Sidebar
 if st.sidebar.button("Load Test Bull Put Spread"):
@@ -335,155 +339,123 @@ if entry_mode == "Simple (Flat)":
             except Exception as e:
                 st.error(f"Validation error: {e}")
 else:
-    with st.form("complex_trade_form", clear_on_submit=True):
-        st.subheader("Multi-Leg Strategy Entry")
-        
-        col_d1, col_d2 = st.columns(2)
-        with col_d1:
-            eastern = pytz.timezone("US/Eastern")
-            strat_date = st.date_input(
-                "Entry Date", 
-                key="strat_date", 
-                value=st.session_state.get("strat_date", datetime.now(eastern).date())
-            )
-        with col_d2:
-            strat_time = st.text_input(
-                "Entry Time (HH:MM:SS)", 
-                value=st.session_state.get("strat_time", "09:30:00"),
-                key="strat_time"
-            )
-        
-        # Group Level Info
-        strat_options = ["Calendar Spread", "Bull Put Spread", "Bear Call Spread"]
+    st.subheader("Multi-Leg Strategy Entry")
+    
+    col_d1, col_d2 = st.columns(2)
+    with col_d1:
+        eastern = pytz.timezone("US/Eastern")
+        strat_date = st.date_input(
+            "Entry Date", 
+            key="strat_date", 
+            value=st.session_state.get("strat_date", datetime.now(eastern).date())
+        )
+        strat_time = st.text_input(
+            "Entry Time (HH:MM:SS)", 
+            value=st.session_state.get("strat_time", "09:30:00"),
+            key="strat_time"
+        )
+
+    with col_d2:
+        strat_options = ["Calendar Spread", "Bull Put Spread", "Bear Call Spread", "Bull Bang Collar", 
+                        "Iron Condor", "Custom"]
         try:
             current_strat = st.session_state.get("strat_name", "Calendar Spread")
             strat_index = strat_options.index(current_strat)
         except ValueError:
             strat_index = 0
-
         strat_name = st.selectbox(
             "Strategy Name",
             options=strat_options,
             index=strat_index, 
-            key="strat_name",
-            
+            key="strat_name"                
         )
 
-        underlying = st.text_input("Underlying Ticker", value=st.session_state.get("l1_ticker", "")).upper()
-
-        # Add the Global Note here
-        strat_note = st.text_area(
-            "Strategy Thesis / Notes",
-            value=st.session_state.get("strat_note", "Playing the IV crush after earnings"),
-            key="strat_note" 
-        )
+        underlying = st.text_input("Underlying Ticker", st.session_state.get("l1_ticker", "")).upper()
         
-        st.markdown("---")
-        
-        # We will assume a 2-leg spread for the input UI
-        type_options = ["Call", "Put"]  # Static options for the option type
-
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("**Leg 1 (Short)**")
-            l1_exp = st.text_input("L1 Expiry (YYYYMMDD)", value=st.session_state.get("l1_exp", "20260826"), key="l1_exp")
-            l1_stk = st.number_input("L1 Strike", value=st.session_state.get("l1_stk", 0.0), step=0.5, key="l1_stk")
-            current_option_type = st.session_state.get("l1_type", "Call")
-            option_type_index = type_options.index(current_option_type) if current_option_type in type_options else 0
-            l1_type = st.selectbox("L1 Type", options=type_options, index=option_type_index, key="l1_type")
-            l1_qty = st.number_input("L1 Quantity", value=st.session_state.get("l1_qty", -1.0), key="l1_qty")
-            l1_price = st.number_input("L1 Entry Price", value=st.session_state.get("l1_price", 0.0), format="%.2f", key="l1_price")
-            l1_comm = st.number_input("L1 Entry Commission", value=st.session_state.get("l1_comm", 0.65), key="l1_comm") # Added this
-
-        with col2:
-            st.markdown("**Leg 2 (Long)**")
-            l2_exp = st.text_input("L2 Expiry (YYYYMMDD)", value=st.session_state.get("l2_exp", "20260826"), key="l2_exp")
-            l2_stk = st.number_input("L2 Strike", value=st.session_state.get("l2_stk", 0.0), step=0.5, key="l2_stk")
-            current_option_type = st.session_state.get("l2_type", "Call")
-            option_type_index = type_options.index(current_option_type) if current_option_type in type_options else 0
-            l2_type = st.selectbox("L2 Type", options=type_options, index=option_type_index, key="l2_type")            
-            l2_qty = st.number_input("L2 Quantity", value=st.session_state.get("l2_qty", -1.0), key="l2_qty")
-            l2_price = st.number_input("L2 Entry Price", value=st.session_state.get("l2_price", 0.0), format="%.2f", key="l2_price")
-            l2_comm = st.number_input("L2 Entry Commission", value=st.session_state.get("l2_comm", 0.65), key="l2_comm") # Added this
-
+    # Add the Global Note here
+    strat_note = st.text_area(
+        "Strategy Thesis / Notes",
+        value=st.session_state.get("strat_note", "Playing the IV crush after earnings"),
+        key="strat_note" 
+    )
     
-        if st.form_submit_button("Submit Complex Strategy"):
-            try:
-                # Prepare data
-                strat_dt = datetime.combine(
-                    st.session_state.strat_date,
-                    datetime.strptime(st.session_state.strat_time, "%H:%M:%S").time()
+    st.markdown("---")
+    
+    # We will assume a 2-leg spread for the input UI
+    active_legs = render_dynamic_leg_form(underlying)
+
+    if st.button("Submit Complex Strategy", type="primary"):
+        try:
+            # Prepare data
+            strat_dt = datetime.combine(
+                st.session_state.strat_date,
+                datetime.strptime(st.session_state.strat_time, "%H:%M:%S").time()
+            )
+            validate_entry_timestamp(strat_dt)
+
+            with SessionLocal() as db:
+                # 1. Create the Parent Group
+                new_group = TradeGroup(
+                    strategy_name=strat_name, 
+                    status="Open",
+                    notes=strat_note,
+                    updated_at=strat_dt,
+                    created_at=strat_dt
                 )
-                validate_entry_timestamp(strat_dt)
+                db.add(new_group)
+                db.flush() 
 
-                # Generate OCC Symbols automatically
-                occ_l1 = to_occ_format(underlying, l1_exp, l1_stk, l1_type)
-                occ_l2 = to_occ_format(underlying, l2_exp, l2_stk, l2_type)
-
-                # Now use occ_l1 and occ_l2 when saving to the 'legs' table...
-                st.info(f"Generated OCC Symbols: {occ_l1} | {occ_l2}")
-
-                with SessionLocal() as db:
-                    # 1. Create the Parent Group
-                    new_group = TradeGroup(
-                        strategy_name=strat_name, 
-                        status="Open",
-                        notes=strat_note,
-                        updated_at=strat_dt,
-                        created_at=strat_dt
-                    )
-                    db.add(new_group)
-                    db.flush() 
-
-                    # 2. Create Leg 1 & Transaction (STO = Sell to Open) with Permanent Columns
-                    l1_action = "STO"
-                    leg1 = Leg(
-                        group_id=new_group.id, 
-                        symbol=underlying, 
-                        side=l1_action,
-                        quantity=l1_qty, 
+                # Loop through Dynamic Legs and save
+                for leg_data in active_legs:
+                    # Skip legs with missing essential data
+                    if not leg_data['exp'] or leg_data['stk'] == 0:
+                        continue
+                    
+                    occ_symbol = to_occ_format(underlying, leg_data['exp'], leg_data['stk'], leg_data['type'])
+                
+                    new_leg = Leg(
+                        group_id=new_group.id,
+                        symbol=underlying,
+                        side=leg_data['side'],
+                        quantity=leg_data['qty'],
                         status="Active",
                         entry_date=strat_dt,
-                        entry_price=l1_price,
-                        entry_commission=l1_comm,
-                        strikeprice = l1_stk,
-                        expiry_dt = l1_exp,
-                        option_type = l1_type
+                        entry_price=leg_data['price'],
+                        entry_commission=leg_data.get('comm', 0.65),
+                        strikeprice=leg_data['stk'],
+                        expiry_dt=leg_data['exp'],
+                        option_type=leg_data['type']
                     )
-                    db.add(leg1)
+                    db.add(new_leg)
                     db.flush()
-                    db.add(Transaction(leg_id=leg1.id, action=l1_action, quantity=l1_qty, price=l1_price, commission=l1_comm, timestamp=strat_dt))
 
-                    # 3. Create Leg 2 & Transaction (BTO = Buy to Open)
-                    l2_action = "BTO"
-                    leg2 = Leg(
-                        group_id=new_group.id, 
-                        symbol=underlying, 
-                        side=l2_action, 
-                        quantity=l2_qty,
-                        status="Active",
-                        entry_date=strat_dt,
-                        entry_price=l2_price,
-                        entry_commission=l2_comm,
-                        strikeprice = l2_stk,
-                        expiry_dt = l2_exp,
-                        option_type = l2_type
-                    )
-                    db.add(leg2)
-                    db.flush()
-                    db.add(Transaction(leg_id=leg2.id, action=l2_action, quantity=l2_qty, price=l2_price, commission=l2_comm, timestamp=strat_dt))
+                    # Create Transaction Record
+                    db.add(Transaction(
+                        leg_id=new_leg.id, 
+                        action=leg_data['side'], 
+                        quantity=leg_data['qty'], 
+                        price=leg_data['price'], 
+                        commission=leg_data.get('comm', 0.65), 
+                        timestamp=strat_dt
+                    ))
 
-                    db.commit()
-                st.success(f"Successfully opened {strat_name} for {underlying}!")
-                st.rerun()
-            except Exception as e:
-                db.rollback()
-                db.close()
-                st.error(f"Error saving complex trade: {e}")
+                db.commit()
+
+            message = f"Successfully opened {strat_name} for {underlying}!" 
+            st.toast({message})
+            logger.info(f"[New_Trade] {message}")
+            
+            # Reset the dynamic legs for the next entry
+            if "dynamic_legs" in st.session_state:
+                del st.session_state.dynamic_legs
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error saving complex trade: {e}")
+            logger.info(f"[New_Trade] Error Saving complex trade {strat_name} for {underlying}: {e}")
    
 # ---------------------------------------------------------
 # 7. Display updated trades
 # ---------------------------------------------------------
-st.header("Open Trades")
-flat_trades, complex_groups = get_all_open_positions()
-render_trades(flat_trades, complex_groups)
+#st.header("Open Trades")
+#flat_trades, complex_groups = get_all_open_positions()
+#render_trades(flat_trades, complex_groups)

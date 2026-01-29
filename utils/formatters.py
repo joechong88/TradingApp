@@ -92,3 +92,13 @@ def expiry_color(val: int) -> str:
         return "background-color: orange; color: black;"
     else:
         return "background-color: green; color: white;"
+
+def safe_markdown(text: str) -> str:
+    """ Escapes characters that triggers LaTeX/Math mode in Streamlit. """
+    if not text:
+        return ""
+    
+    # Replace $ with \$ to prevent LaTeX math mode hijacking
+    replace_text = text.replace("$", "\$")
+
+    return replace_text

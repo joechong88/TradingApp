@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import pytz
 from datetime import datetime
-from utils.formatters import format_datetime
+from utils.formatters import format_datetime, safe_markdown
 from utils.config_loader import load_config
 from utils.trades import calculate_strategy_cost, execute_roll_short_call, get_group_realized_pnl, calculate_comprehensive_pnl, execute_close_strategy, get_active_legs_by_group
 
@@ -97,7 +97,8 @@ def render_complex_strategy_cards(complex_groups):
         all_legs = list(group.legs)
         
         # 1. Data Preparation
-        note_preview = group.notes[:30] if group.notes else "No notes"
+        note_preview_extract = group.notes[:30] if group.notes else "No notes"
+        note_preview = safe_markdown(note_preview_extract)  # Require to avoid Math Mode with Streamlit.
         ticker = group.legs[0].symbol[:6].strip() if group.legs else "Data Error"
         # --- SEPARATE LEGS BY STATUS ---
         active_legs = [l for l in all_legs if str(l.status).strip().lower() == 'active']
@@ -128,9 +129,9 @@ def render_complex_strategy_cards(complex_groups):
         
         # 2. Expander Header
         expander_label = (
-            f"**Group ID:** {group.group_id} | "
-            f"**{ticker}** | {group.strategy} | "
-            f"{pnl_color} **{pnl_str}** | "
+            f"Group ID: {group.group_id} | "
+            f"{ticker} | {group.strategy} | "
+            f"{pnl_color} {pnl_str} | "
             f"*{note_preview}*"
         )
         with st.expander(expander_label, expanded=False):
@@ -184,7 +185,7 @@ def render_complex_strategy_cards(complex_groups):
                         "Leg": f"{l.side} {l.expiry_dt} {l.strikeprice}{l.option_type}",
                         "Entry": f"${l.entry_price:.2f}",
                         "Exit": f"${l.exit_price:.2f}",
-                        "P&L": f"${leg_pnl:.2f}",
+                        "P&L": f"${leg_pnl:,.2f}",
                         "Comms": f"${(l.entry_commission)+(l.exit_commission):.2f}",
                         "Closed At": format_datetime(l.exit_date) if l.exit_date else "N/A"
                     })
@@ -454,13 +455,18 @@ def roll_short_call_dialog(group_id, leg):
     # --- Initiate logging
     logger = get_logger(__name__)
 
+    # Namespace the keys with group_id so different strategies don't conflict
+    time_key = f"roll_time_{group_id}"
+    date_key = f"roll_date_{group_id}"
+    
     # Set default to current EST time, and ONLY generate the initial time if it's not already stored
     est_tz = pytz.timezone('America/New_York')
     now_est = datetime.now(est_tz)
 
-    if "roll_time_init" not in st.session_state:
-        st.session_state.roll_time_init = now_est.strftime("%H:%M:%S")
-        st.session_state.roll_date_init = now_est.date()
+    if time_key not in st.session_state:
+        st.session_state[time_key] = now_est.strftime("%H:%M:%S")
+    if date_key not in st.session_state:
+        st.session_state[date_key] = now_est.date()
 
     st.write(f"Rolling **{leg.symbol}** | Current: {leg.expiry_dt} @ {leg.strikeprice}")
 
@@ -468,11 +474,11 @@ def roll_short_call_dialog(group_id, leg):
     col_d, col_t = st.columns(2)
     with col_d:
         # Defaults to today's date in EST
-        trade_date = st.date_input("Execution Date (EST)", value=st.session_state.roll_date_init)
+        trade_date = st.date_input("Execution Date (EST)", value=st.session_state[date_key])
     with col_t:
         # Defaults to current minute in EST
         current_time_str = now_est.strftime("%H:%M:%S")
-        trade_time_str = st.text_input("Execution Time (EST) - HH:MM:SS", value=st.session_state.roll_time_init)
+        trade_time_str = st.text_input("Execution Time (EST) - HH:MM:SS", value=st.session_state[time_key])
     
     # Combine into a single timezone-aware datetime object
     try:
@@ -510,6 +516,10 @@ def roll_short_call_dialog(group_id, leg):
 
         success, msg = execute_roll_short_call(group_id, leg.id, exit_p, exit_c, params)
         if success:
+            # clear the session state for this group so it's fresh for the next roll
+            del st.session_state[time_key]
+            del st.session_state[date_key]
+
             st.success("Roll Documented.")
             logger.debug(f"[roll_short_call_dialog] Executed rolling successfully")
             st.rerun()
@@ -544,6 +554,7 @@ def close_strategy_dialog(group_id, active_prices):
         st.write("---")
         st.write("**Final Exit Leg Details:**")
         for leg_id, d in st.session_state[f"pending_exit_{group_id}"].items():
+            #leg_str = f"{leg.strikeprice}{leg.option_type} ({leg.side})"
             st.caption(f"Leg {leg_id}: Price ${d['price']:.2f} | Comm ${d['commission']:.2f}")
 
         if st.button("Finalize & Save", type="primary", width='stretch'):
@@ -584,7 +595,7 @@ def close_strategy_dialog(group_id, active_prices):
     # Dictionary to store user input
     exit_details = {}
 
-    for leg in active_legs:
+    for i, leg in enumerate(active_legs):
         # 1. Check if we have previously entered data in session_state
         pending_data = st.session_state.get(f"pending_exit_{group_id}", {})
         leg_pending = pending_data.get(leg.id)
@@ -608,25 +619,33 @@ def close_strategy_dialog(group_id, active_prices):
 
             default_comm = OPTIONS_COMMISSION
 
-        st.markdown(f"**Leg:** {leg.symbol} {leg.strikeprice}{leg.option_type} ({leg.side})")
-        leg_str = f"{leg.strikeprice}{leg.option_type} ({leg.side})"
-        col1, col2 = st.columns(2)
-        with col1:
-            price = st.number_input(
-                f"Exit Price for {leg_str}", 
-                value=default_price,
-                format="%.2f",
-                key=f"exit_p_{leg.id}"
-            )
-        with col2:
-            comm = st.number_input(
-                f"Exit Comm for {leg_str}", 
-                value=default_comm, 
-                format="%.2f",
-                key=f"exit_c_{leg.id}"
-            )
-        exit_details[leg.id] = {"price": price, "commission": comm}
-        st.divider()
+        # UI: Compact row per leg
+        with st.container():
+            # Bold label for the leg
+            st.markdown(f"**Leg:** {leg.symbol} {leg.strikeprice}{leg.option_type} ({leg.side})")
+            leg_str = f"{leg.strikeprice}{leg.option_type} ({leg.side})"
+        
+            col1, col2 = st.columns(2)
+            with col1:
+                price = st.number_input(
+                    f"Exit Price for {leg_str}", 
+                    value=default_price,
+                    format="%.2f",
+                    key=f"exit_p_{leg.id}_{group_id}",
+                    label_visibility="collapsed"
+                )
+            with col2:
+                comm = st.number_input(
+                    f"Exit Comm for {leg_str}", 
+                    value=default_comm, 
+                    format="%.2f",
+                    key=f"exit_c_{leg.id}_{group_id}",
+                    label_visibility="collapsed"
+                )
+            exit_details[leg.id] = {"price": price, "commission": comm}
+
+            if i < len(active_legs) - 1:
+                st.write("") # Tiny spacer instead of heavy divider
 
     if st.button("Review Summary", type="primary", width='stretch'):
         try:
@@ -660,3 +679,41 @@ def close_strategy_dialog(group_id, active_prices):
             if key in st.session_state: 
                 del st.session_state[key]
         st.rerun()
+
+def render_dynamic_leg_form(underlying_ticker):
+    """Renders a dynamic form for 1 to 4 legs."""
+    if "dynamic_legs" not in st.session_state:
+        # Default to 2 legs to match your current Bull Put/Calendar logic
+        st.session_state.dynamic_legs = [
+            {"side": "STO", "qty": -1.0, "exp": "", "stk": 0.0, "type": "Call", "price": 0.0, "comm": 0.65},
+            {"side": "BTO", "qty": 1.0, "exp": "", "stk": 0.0, "type": "Call", "price": 0.0, "comm": 0.65}
+        ]
+
+    to_delete = None
+
+    with st.container():
+        st.markdown("### 🧬 Strategy Legs")
+    
+        for idx, leg in enumerate(st.session_state.dynamic_legs):
+            c1, c2, c3, c4, c5, c6, c7, c8 = st.columns([1.2, 1.8, 1.2, 1.2, 1, 1, 1, 0.5])
+            
+            leg['side'] = c1.selectbox("Side", ["BTO", "STO", "BUY", "SELL"], index=0, key=f"side_{idx}")
+            leg['exp'] = c2.text_input("Expiry", value=leg['exp'], key=f"exp_{idx}")
+            leg['stk'] = c3.number_input("Strike", value=float(leg['stk']), key=f"stk_{idx}")
+            leg['type'] = c4.selectbox("Type", ["Call", "Put"], key=f"type_{idx}")
+            leg['qty'] = c5.number_input("Qty", value=float(leg['qty']), key=f"qty_{idx}")
+            leg['price'] = c6.number_input("Price", value=float(leg['price']), key=f"price_{idx}")
+            leg['comm'] = c7.number_input("Comm", value=float(leg['comm']), key=f"comm_{idx}")
+            
+            if c8.button("🗑️", key=f"del_{idx}"):
+                to_delete = idx
+
+        if to_delete is not None:
+            st.session_state.dynamic_legs.pop(to_delete)
+            st.rerun()
+
+        if st.button("➕ Add Leg"):
+            st.session_state.dynamic_legs.append({"side": "BTO", "qty": 1.0, "exp": "", "stk": 0.0, "type": "Call", "price": 0.0, "comm": 0.65})
+            st.rerun()
+            
+    return st.session_state.dynamic_legs

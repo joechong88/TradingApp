@@ -90,25 +90,25 @@ class QuoteManager:
     # ---------------------------------------------------------
     def ensure_connected(self):
         if self.ib is None:
-            # logger.info("[QuoteManager.ensure_connected] self.ib is None, connecting...")
+            logger.info("[QuoteManager.ensure_connected] self.ib is None, connecting...")
             self.ib = connect_ib()
-            # logger.info(
-            #    f"[QuoteManager.ensure_connected] new IB instance id={id(self.ib)}, "
-            #    f"isConnected={self.ib.isConnected()}"
-            #)
+            logger.info(
+                f"[QuoteManager.ensure_connected] new IB instance id={id(self.ib)}, "
+                f"isConnected={self.ib.isConnected()}"
+            )
             return
 
         # Existing IB but disconnected
         if not self.ib.isConnected():
-            #logger.info(
-            #    f"[QuoteManager.ensure_connected] Existing IB disconnected, "
-            #    f"reconnecting... id={id(self.ib)}"
-            #)
+            logger.info(
+                f"[QuoteManager.ensure_connected] Existing IB disconnected, "
+                f"reconnecting... id={id(self.ib)}"
+            )
             self.ib = connect_ib()  # Create IB only here
-            #logger.info(
-            #    f"[QuoteManager.ensure_connected] reconnected IB id={id(self.ib)}, "
-            #    f"isConnected={self.ib.isConnected()}"
-            #)
+            logger.info(
+                f"[QuoteManager.ensure_connected] reconnected IB id={id(self.ib)}, "
+                f"isConnected={self.ib.isConnected()}"
+            )
 
     def get_status(self):
         """Returns (status_text, color_icon, session_name)"""

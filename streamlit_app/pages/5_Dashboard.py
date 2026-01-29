@@ -15,8 +15,8 @@ import calendar
 from datetime import datetime, date
 import pytz
 from sqlalchemy.orm import Session
-from db.models import SessionLocal, Trade
-from utils.trades import trades_to_df, calculate_pnl
+from db.models import SessionLocal, Trade, TradeGroup, Leg
+from utils.trades import trades_to_df, calculate_comprehensive_pnl
 import plotly.graph_objects as go
 import altair as alt
 import pandas_market_calendars as mcal 
@@ -27,13 +27,49 @@ nyse = mcal.get_calendar("NYSE")
 @st.cache_data(ttl=60)
 def load_closed_trades():
     with SessionLocal() as db:
+        # 1. Fetch simple trades
         trades = (
             db.query(Trade)
             .filter(Trade.is_open == False)
             .order_by(Trade.exit_dt.asc())
             .all()
         )
-    return trades_to_df(trades, live=False)
+        df_simple = trades_to_df(trades, live=False)
+
+        # 2. Fetch closed complex groups
+        closed_groups = db.query(TradeGroup).filter(TradeGroup.status == "Closed").all()
+
+        complex_rows = []
+        for group in closed_groups:
+            # Use your existing engine - pass empty list for active_prices because they are closed
+            stats = calculate_comprehensive_pnl(group.id, active_legs_data=[])
+            
+            # Identify the ticker (usually the first leg)
+            ticker = group.legs[0].symbol if group.legs else "Unknown"
+            
+            # The "Exit Date" for a group is usually the date of the last closed leg
+            exit_dates = [l.exit_date for l in group.legs if l.exit_date]
+            final_exit = max(exit_dates) if exit_dates else group.updated_at
+            
+            complex_rows.append({
+                "id": f"G-{group.id}",
+                "symbol": ticker,
+                "pnl": stats['total_pnl'],
+                "exit_dt": pd.to_datetime(final_exit),
+                "is_open": False,
+                "strategy_name": group.strategy_name or "Complex"
+            })
+        
+        if complex_rows:
+            df_complex = pd.DataFrame(complex_rows)
+            # Combine both DataFrames
+            combined_df = pd.concat([df_simple, df_complex], ignore_index=True)
+        else:
+            combined_df = df_simple
+        
+        # Ensure exit_dt is datetime for all calculations
+        combined_df["exit_dt"] = pd.to_datetime(combined_df["exit_dt"])
+        return combined_df
 
 def get_month_schedule(year, month):
     start = datetime(year, month, 1)
@@ -384,7 +420,11 @@ def show_trades_for_date(df, selected_date):
         return
 
     # You can customize this to your preferred layout
-    st.dataframe(day_df)
+    # Formatting for display
+    display_df = day_df[["symbol", "strategy_name", "pnl"]].copy()
+    display_df["pnl"] = display_df["pnl"].map("${:,.2f}".format)
+    
+    st.dataframe(display_df)
 
 # Build a function to extract summaries
 def build_trade_preview_map(df):

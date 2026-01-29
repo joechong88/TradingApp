@@ -192,7 +192,7 @@ with tab2:
                         "P&L": f"${((l.exit_price - l.entry_price) * l.quantity * 100) if l.side == 'BTO' else ((l.entry_price - l.exit_price) * l.quantity * -100):.2f}",
                         "Closed At": format_datetime(l.exit_date)
                     })
-                st.table(history_data)
+                st.dataframe(history_data, width='stretch', hide_index=True)
                 
                 # Final Stats Summary
                 c1, c2, c3 = st.columns(3)

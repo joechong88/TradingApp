@@ -1,7 +1,8 @@
 import logging
 import os
 import sys
-from logging.handlers import TimedRotatingFileHandler
+#from logging.handlers import TimedRotatingFileHandler
+from concurrent_log_handler import ConcurrentRotatingFileHandler
 
 # Ensure logs directory exists
 LOG_DIR = os.path.join("data", "logs")
@@ -37,7 +38,13 @@ def get_logger(name: str = __name__) -> logging.Logger:
         console_handler.setLevel(logging.DEBUG)
 
         # Rotating file handler: 5 MB per file, keep 5 backups
-        file_handler = TimedRotatingFileHandler(LOG_FILE, when="midnight", interval=1, backupCount=7)
+        file_handler = ConcurrentRotatingFileHandler(
+            LOG_FILE,
+            "a",
+            maxBytes=5*1024*1024,
+            backupCount=7,
+            encoding='utf-8' 
+        )
         file_handler.setLevel(logging.DEBUG)
 
         # Formatter
