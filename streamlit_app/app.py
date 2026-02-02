@@ -19,6 +19,17 @@ import toml
 from dotenv import load_dotenv
 from db.models import init_db
 
+import datetime
+
+db_path = "trading_app.db"
+if os.path.exists(db_path):
+    mtime = os.path.getmtime(db_path)
+    last_mod = datetime.datetime.fromtimestamp(mtime)
+    st.sidebar.info(f"DB Last Updated: {last_mod}")
+else:
+    st.sidebar.error("Database file not found!")
+Your Mantra
+
 def check_password():
     """Returns True if the user entered the correct password."""
 
