@@ -89,6 +89,7 @@ class QuoteManager:
     # ✅ Auto‑Reconnect (critical for Streamlit)
     # ---------------------------------------------------------
     def ensure_connected(self):
+        # 1. If None, we must connect
         if self.ib is None:
             logger.info("[QuoteManager.ensure_connected] self.ib is None, connecting...")
             self.ib = connect_ib()
@@ -98,17 +99,29 @@ class QuoteManager:
             )
             return
 
+        # 2. Check both isConnected() AND the physical socket
+        # If the socket is None or closed, isConnected() is often a liar.
+        is_socket_alive = getattr(self.ib.client, 'socket', None) is not None
+
         # Existing IB but disconnected
-        if not self.ib.isConnected():
+        if not self.ib.isConnected() or not is_socket_alive:
             logger.info(
-                f"[QuoteManager.ensure_connected] Existing IB disconnected, "
+                f"[QuoteManager.ensure_connected] Existing IB disconnected, or socket dead "
                 f"reconnecting... id={id(self.ib)}"
             )
+            try:
+                # Clean up the old instance to free the port/clientId
+                self.ib.disconnect()
+            except:
+                pass
+            
+            # Create a fresh connection
             self.ib = connect_ib()  # Create IB only here
-            logger.info(
-                f"[QuoteManager.ensure_connected] reconnected IB id={id(self.ib)}, "
-                f"isConnected={self.ib.isConnected()}"
-            )
+
+            if self.ib.isConnected():
+                logger.info(f"[QuoteManager.ensure_connected] Successfully resurrected IB id={id(self.ib)}")
+            else:
+                logger.error("[QuoteManager.ensure_connected] Resurrection failed. Gateway/TWS might be closed.")
 
     def get_status(self):
         """Returns (status_text, color_icon, session_name)"""

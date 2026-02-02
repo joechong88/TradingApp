@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import pytz
+import time
+
 from datetime import datetime
 from utils.formatters import format_datetime, safe_markdown
 from utils.config_loader import load_config
@@ -438,11 +440,12 @@ def render_close_trade_form(open_df):
                     t.exit_commissions = exit_commissions
                     t.is_open = False
                     db.commit()
-                    st.toast(f"Trade {sel_id} closed successfully!")
-                    st.balloons()
+                    message = f"Trade {sel_id} closed successfully!"
+                    show_trade_confirmation(
+                        message=message,
+                        success_type="toast"
+                    ) 
 
-                    import time
-                    time.sleep(1.5)
                     st.rerun() # Refresh to update the table
         except ValueError:
             st.error("Invalid time format. Please use HH:MM:SS.")
@@ -520,7 +523,12 @@ def roll_short_call_dialog(group_id, leg):
             del st.session_state[time_key]
             del st.session_state[date_key]
 
-            st.success("Roll Documented.")
+            message = f"Roll documented."
+            show_trade_confirmation(
+                message=message,
+                success_type="toast"
+            )
+
             logger.debug(f"[roll_short_call_dialog] Executed rolling successfully")
             st.rerun()
         else:
@@ -717,3 +725,29 @@ def render_dynamic_leg_form(underlying_ticker):
             st.rerun()
             
     return st.session_state.dynamic_legs
+
+def show_trade_confirmation(message: str, success_type: str = "toast", show_balloons: bool = False):
+    """
+    Unified UI utility for trade actions (Entry, Exit, Adjustments).
+    
+    Args:
+        message (str): The text to display.
+        success_type (str): "toast" for a popup, "box" for st.success, or "both".
+        show_balloons (bool): If True, triggers the celebration animation.
+    """
+    
+    # 1. Trigger Animations first
+    if show_balloons:
+        st.balloons()
+
+    # 2. Handle the display type
+    if success_type in ["toast", "both"]:
+        # We use a standard icon for all trade actions to keep it branded
+        st.toast(message, icon="✅")
+
+    if success_type in ["box", "both"]:
+        st.success(message)
+        
+    # 3. Small sleep to allow the user to 'register' the success before a rerun
+    # (Only needed if you are calling st.rerun() immediately after)
+    time.sleep(0.5)

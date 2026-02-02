@@ -28,7 +28,7 @@ from utils.validation import validate_entry_timestamp
 from utils.trades import trades_to_df, calculate_pnl, get_all_open_positions
 from utils.market_clock import show_market_clock
 from utils.formatters import is_valid_expiry
-from utils.ui_components import render_complex_strategy_cards, render_dynamic_leg_form
+from utils.ui_components import render_complex_strategy_cards, render_dynamic_leg_form, show_trade_confirmation
 from utils.logger import get_logger
 
 # --- Initiate logging
@@ -329,8 +329,13 @@ if entry_mode == "Simple (Flat)":
                     # Store info for confirmation message before rerun
                     st.session_state.last_added = f"{strategy} {symbol} at {entry_price}"
                 
-                    st.success(f"✅ Trade Confirmed: {st.session_state.last_added}")
-                    asyncio.sleep(1)    # Brief pause so user sees success
+                    #st.success(f"✅ Trade Confirmed: {st.session_state.last_added}")
+                    show_trade_confirmation(
+                        message=f"✅ Trade Confirmed: {st.session_state.last_added}",
+                        success_type="both",
+                        show_balloons=True
+                    )
+
                     st.rerun()  # <-- ensures fresh display
                     db.close()
 
@@ -441,8 +446,13 @@ else:
 
                 db.commit()
 
-            message = f"Successfully opened {strat_name} for {underlying}!" 
-            st.toast({message})
+            message = f"Successfully opened {strat_name} for {underlying}!"
+            show_trade_confirmation(
+                message=message,
+                success_type="both",
+                show_balloons=True
+            ) 
+            #st.toast({message})
             logger.info(f"[New_Trade] {message}")
             
             # Reset the dynamic legs for the next entry
@@ -452,10 +462,3 @@ else:
         except Exception as e:
             st.error(f"Error saving complex trade: {e}")
             logger.info(f"[New_Trade] Error Saving complex trade {strat_name} for {underlying}: {e}")
-   
-# ---------------------------------------------------------
-# 7. Display updated trades
-# ---------------------------------------------------------
-#st.header("Open Trades")
-#flat_trades, complex_groups = get_all_open_positions()
-#render_trades(flat_trades, complex_groups)
