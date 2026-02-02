@@ -22,11 +22,6 @@ import altair as alt
 import pandas_market_calendars as mcal 
 from utils.market_clock import show_market_clock
 
-from db.models import engine
-
-# This will show you exactly which file the app is touching
-st.sidebar.error(f"App is using DB at: {os.path.abspath('trading_app.db')}")
-
 nyse = mcal.get_calendar("NYSE")
 
 @st.cache_data(ttl=60)
@@ -418,10 +413,10 @@ def get_cell_background(day, pnl, is_trading_day):
 def show_trades_for_date(df, selected_date):
     day_df = df[df["exit_dt"].dt.date == selected_date]
 
-    st.subheader(f"Trades on {selected_date.strftime('%Y-%m-%d')}")
+    st.subheader(f"Trades closed on {selected_date.strftime('%Y-%m-%d')}")
 
     if day_df.empty:
-        st.info("No trades on this day.")
+        st.info("No trades closed on this day.")
         return
 
     # You can customize this to your preferred layout
