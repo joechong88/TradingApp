@@ -32731,3 +32731,617 @@ TypeError: must be real number, not NoneType
 2026-01-31 10:07:21,146 [INFO] utils.trades: Final True P&L: -833.43
 2026-01-31 10:07:21,146 [INFO] utils.trades: --- DEBUG END ---
 
+2026-02-02 10:31:05,680 [INFO] utils.trades: LEG ID: 7 | CRWD 20260123 455.0Put | Qty: -4
+2026-02-02 10:31:05,694 [INFO] utils.trades:   > Realized: Entry $3,664.00 | Exit $-836.00 | Comms $4.14 | P&L $2,828.00 | Status: Closed
+2026-02-02 10:31:05,728 [INFO] utils.trades: LEG ID: 8 | CRWD 20260123 445.0Put | Qty: 4
+2026-02-02 10:31:05,730 [INFO] utils.trades:   > Realized: Entry $-2,740.00 | Exit $104.00 | Comms $4.13 | P&L $-2,636.00 | Status: Closed
+2026-02-02 10:31:05,741 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:31:05,745 [INFO] utils.trades: Initial Baseline: 921.35
+2026-02-02 10:31:05,881 [INFO] utils.trades: Total Realized Cash: 183.73
+2026-02-02 10:31:05,979 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:31:06,021 [INFO] utils.trades: Final True P&L: 183.73
+2026-02-02 10:31:06,030 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:31:06,145 [INFO] utils.trades: LEG ID: 9 | FISV 20260116 70.0Put | Qty: -4
+2026-02-02 10:31:06,154 [INFO] utils.trades:   > Realized: Entry $700.00 | Exit $-1,468.00 | Comms $5.63 | P&L $-768.00 | Status: Closed
+2026-02-02 10:31:06,159 [INFO] utils.trades: LEG ID: 10 | FISV 20260116 65.0Put | Qty: 4
+2026-02-02 10:31:06,160 [INFO] utils.trades:   > Realized: Entry $-68.00 | Exit $28.00 | Comms $5.02 | P&L $-40.00 | Status: Closed
+2026-02-02 10:31:06,162 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:31:06,168 [INFO] utils.trades: Initial Baseline: 626.38
+2026-02-02 10:31:06,212 [INFO] utils.trades: Total Realized Cash: -818.65
+2026-02-02 10:31:06,218 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:31:06,222 [INFO] utils.trades: Final True P&L: -818.65
+2026-02-02 10:31:06,224 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:31:06,227 [INFO] utils.trades: LEG ID: 11 | AMZN 20251128 220.0Call | Qty: -2
+2026-02-02 10:31:06,229 [INFO] utils.trades:   > Realized: Entry $1,038.00 | Exit $-1,740.00 | Comms $1.60 | P&L $-702.00 | Status: Rolled
+2026-02-02 10:31:06,230 [INFO] utils.trades: LEG ID: 12 | AMZN 20260320 220.0Call | Qty: 2
+2026-02-02 10:31:06,235 [INFO] utils.trades:   > Realized: Entry $-4,188.00 | Exit $5,024.00 | Comms $1.52 | P&L $836.00 | Status: Closed
+2026-02-02 10:31:06,238 [INFO] utils.trades: LEG ID: 15 | AMZN 20251205 227.5Call | Qty: -2
+2026-02-02 10:31:06,239 [INFO] utils.trades:   > Realized: Entry $1,114.00 | Exit $-648.00 | Comms $1.45 | P&L $466.00 | Status: Rolled
+2026-02-02 10:31:06,240 [INFO] utils.trades: LEG ID: 16 | AMZN 20251219 232.5Call | Qty: -2
+2026-02-02 10:31:06,243 [INFO] utils.trades:   > Realized: Entry $892.00 | Exit $-4.00 | Comms $1.32 | P&L $888.00 | Status: Rolled
+2026-02-02 10:31:06,245 [INFO] utils.trades: LEG ID: 17 | AMZN 20260102 235.0Call | Qty: -2
+2026-02-02 10:31:06,247 [INFO] utils.trades:   > Realized: Entry $246.00 | Exit $-72.00 | Comms $1.67 | P&L $174.00 | Status: Rolled
+2026-02-02 10:31:06,248 [INFO] utils.trades: LEG ID: 18 | AMZN 20260109 235.0Call | Qty: -2
+2026-02-02 10:31:06,253 [INFO] utils.trades:   > Realized: Entry $422.00 | Exit $-1,960.00 | Comms $2.38 | P&L $-1,538.00 | Status: Rolled
+2026-02-02 10:31:06,255 [INFO] utils.trades: LEG ID: 19 | AMZN 20260116 240.0Call | Qty: -2
+2026-02-02 10:31:06,256 [INFO] utils.trades:   > Realized: Entry $1,420.00 | Exit $-56.00 | Comms $2.12 | P&L $1,364.00 | Status: Closed
+2026-02-02 10:31:06,260 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:31:06,260 [INFO] utils.trades: Initial Baseline: -3,151.61
+2026-02-02 10:31:06,262 [INFO] utils.trades: Total Realized Cash: 1,475.94
+2026-02-02 10:31:06,262 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:31:06,263 [INFO] utils.trades: Final True P&L: 1,475.94
+2026-02-02 10:31:06,264 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:31:06,275 [INFO] utils.trades: LEG ID: 13 | SNDK 20260123 350.0Put | Qty: -3
+2026-02-02 10:31:06,278 [INFO] utils.trades:   > Realized: Entry $3,621.00 | Exit $-0.00 | Comms $0.28 | P&L $3,621.00 | Status: Closed
+2026-02-02 10:31:06,278 [INFO] utils.trades: LEG ID: 14 | SNDK 20260123 340.0Put | Qty: 3
+2026-02-02 10:31:06,279 [INFO] utils.trades:   > Realized: Entry $-2,781.00 | Exit $0.00 | Comms $0.28 | P&L $-2,781.00 | Status: Closed
+2026-02-02 10:31:06,280 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:31:06,281 [INFO] utils.trades: Initial Baseline: 839.44
+2026-02-02 10:31:06,288 [INFO] utils.trades: Total Realized Cash: 839.44
+2026-02-02 10:31:06,289 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:31:06,291 [INFO] utils.trades: Final True P&L: 839.44
+2026-02-02 10:31:06,292 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:31:06,295 [INFO] utils.trades: LEG ID: 20 | COST 20251031 935.0Call | Qty: -1
+2026-02-02 10:31:06,296 [INFO] utils.trades:   > Realized: Entry $1,289.00 | Exit $-2,142.00 | Comms $1.40 | P&L $-853.00 | Status: Rolled
+2026-02-02 10:31:06,297 [INFO] utils.trades: LEG ID: 21 | COST 20260116 935.0Call | Qty: 1
+2026-02-02 10:31:06,298 [INFO] utils.trades:   > Realized: Entry $-4,672.00 | Exit $2,237.00 | Comms $1.50 | P&L $-2,435.00 | Status: Closed
+2026-02-02 10:31:06,306 [INFO] utils.trades: LEG ID: 22 | COST 20251114 950.0Call | Qty: -1
+2026-02-02 10:31:06,308 [INFO] utils.trades:   > Realized: Entry $2,037.00 | Exit $-14.00 | Comms $1.75 | P&L $2,023.00 | Status: Rolled
+2026-02-02 10:31:06,308 [INFO] utils.trades: LEG ID: 23 | COST 20251121 940.0Call | Qty: -1
+2026-02-02 10:31:06,309 [INFO] utils.trades:   > Realized: Entry $427.00 | Exit $-3.00 | Comms $2.10 | P&L $424.00 | Status: Rolled
+2026-02-02 10:31:06,309 [INFO] utils.trades: LEG ID: 24 | COST 20251128 940.0Call | Qty: -1
+2026-02-02 10:31:06,311 [INFO] utils.trades:   > Realized: Entry $139.00 | Exit $-6.00 | Comms $2.10 | P&L $133.00 | Status: Rolled
+2026-02-02 10:31:06,312 [INFO] utils.trades: LEG ID: 25 | COST 20251205 940.0Call | Qty: -1
+2026-02-02 10:31:06,313 [INFO] utils.trades:   > Realized: Entry $111.00 | Exit $-8.00 | Comms $2.07 | P&L $103.00 | Status: Rolled
+2026-02-02 10:31:06,314 [INFO] utils.trades: LEG ID: 26 | COST 20251212 940.0Call | Qty: -1
+2026-02-02 10:31:06,322 [INFO] utils.trades:   > Realized: Entry $553.00 | Exit $-4.00 | Comms $1.70 | P&L $549.00 | Status: Rolled
+2026-02-02 10:31:06,323 [INFO] utils.trades: LEG ID: 27 | COST 20260102 945.0Call | Qty: -1
+2026-02-02 10:31:06,325 [INFO] utils.trades:   > Realized: Entry $137.00 | Exit $-0.00 | Comms $0.67 | P&L $137.00 | Status: Rolled
+2026-02-02 10:31:06,326 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:31:06,327 [INFO] utils.trades: Initial Baseline: -3,384.40
+2026-02-02 10:31:06,328 [INFO] utils.trades: Total Realized Cash: 67.71
+2026-02-02 10:31:06,329 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:31:06,330 [INFO] utils.trades: Final True P&L: 67.71
+2026-02-02 10:31:06,330 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:31:06,337 [INFO] utils.trades: LEG ID: 78 | NVO 20260320 50.0Call | Qty: 2
+2026-02-02 10:31:06,339 [INFO] utils.trades:   > Realized: Entry $-1,540.00 | Exit $2,050.00 | Comms $2.81 | P&L $510.00 | Status: Closed
+2026-02-02 10:31:06,340 [INFO] utils.trades: LEG ID: 79 | NVO 20260320 45.0Put | Qty: -2
+2026-02-02 10:31:06,345 [INFO] utils.trades:   > Realized: Entry $762.00 | Exit $-78.00 | Comms $2.81 | P&L $684.00 | Status: Closed
+2026-02-02 10:31:06,346 [INFO] utils.trades: LEG ID: 80 | NVO 20260320 40.0Put | Qty: 2
+2026-02-02 10:31:06,347 [INFO] utils.trades:   > Realized: Entry $-426.00 | Exit $28.00 | Comms $2.81 | P&L $-398.00 | Status: Closed
+2026-02-02 10:31:06,348 [INFO] utils.trades: LEG ID: 81 | NVO 20251003 60.0Call | Qty: -1
+2026-02-02 10:31:06,348 [INFO] utils.trades:   > Realized: Entry $100.00 | Exit $-12.00 | Comms $1.77 | P&L $88.00 | Status: Rolled
+2026-02-02 10:31:06,353 [INFO] utils.trades: LEG ID: 82 | NVO 20251017 62.0Call | Qty: -1
+2026-02-02 10:31:06,354 [INFO] utils.trades:   > Realized: Entry $68.00 | Exit $-136.00 | Comms $2.05 | P&L $-68.00 | Status: Rolled
+2026-02-02 10:31:06,356 [INFO] utils.trades: LEG ID: 83 | NVO 20251017 65.0Call | Qty: -2
+2026-02-02 10:31:06,357 [INFO] utils.trades:   > Realized: Entry $142.00 | Exit $-12.00 | Comms $2.75 | P&L $130.00 | Status: Rolled
+2026-02-02 10:31:06,358 [INFO] utils.trades: LEG ID: 84 | NVO 20251031 65.0Call | Qty: -2
+2026-02-02 10:31:06,358 [INFO] utils.trades:   > Realized: Entry $104.00 | Exit $-0.00 | Comms $0.70 | P&L $104.00 | Status: Rolled
+2026-02-02 10:31:06,360 [INFO] utils.trades: LEG ID: 85 | NVO 20251128 53.0Call | Qty: -2
+2026-02-02 10:31:06,360 [INFO] utils.trades:   > Realized: Entry $212.00 | Exit $-2.00 | Comms $2.39 | P&L $210.00 | Status: Rolled
+2026-02-02 10:31:06,361 [INFO] utils.trades: LEG ID: 86 | NVO 20251205 53.0Call | Qty: -2
+2026-02-02 10:31:06,361 [INFO] utils.trades:   > Realized: Entry $30.00 | Exit $-0.00 | Comms $0.70 | P&L $30.00 | Status: Rolled
+2026-02-02 10:31:06,362 [INFO] utils.trades: LEG ID: 87 | NVO 20260102 55.0Call | Qty: -2
+2026-02-02 10:31:06,362 [INFO] utils.trades:   > Realized: Entry $100.00 | Exit $-6.00 | Comms $3.32 | P&L $94.00 | Status: Rolled
+2026-02-02 10:31:06,364 [INFO] utils.trades: LEG ID: 88 | NVO 20260123 55.0Call | Qty: -2
+2026-02-02 10:31:06,370 [INFO] utils.trades:   > Realized: Entry $138.00 | Exit $-1,724.00 | Comms $2.04 | P&L $-1,586.00 | Status: Rolled
+2026-02-02 10:31:06,373 [INFO] utils.trades: LEG ID: 89 | NVO 20260206 55.0Call | Qty: -2
+2026-02-02 10:31:06,376 [INFO] utils.trades:   > Realized: Entry $1,816.00 | Exit $-1,660.00 | Comms $2.11 | P&L $156.00 | Status: Rolled
+2026-02-02 10:31:06,380 [INFO] utils.trades: LEG ID: 94 | NVO 20260213 58.0Call | Qty: -2
+2026-02-02 10:31:06,387 [INFO] utils.trades:   > Realized: Entry $1,236.00 | Exit $-682.00 | Comms $2.80 | P&L $554.00 | Status: Closed
+2026-02-02 10:31:06,389 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:31:06,390 [INFO] utils.trades: Initial Baseline: -1,108.95
+2026-02-02 10:31:06,392 [INFO] utils.trades: Total Realized Cash: 478.94
+2026-02-02 10:31:06,394 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:31:06,395 [INFO] utils.trades: Final True P&L: 478.94
+2026-02-02 10:31:06,396 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:31:06,404 [INFO] utils.trades: LEG ID: 90 | SNDK 20260130 420.0Put | Qty: -5
+2026-02-02 10:31:06,405 [INFO] utils.trades:   > Realized: Entry $3,935.00 | Exit $-3,935.00 | Comms $7.03 | P&L $0.00 | Status: Closed
+2026-02-02 10:31:06,407 [INFO] utils.trades: LEG ID: 91 | SNDK 20260130 410.0Put | Qty: 5
+2026-02-02 10:31:06,408 [INFO] utils.trades:   > Realized: Entry $-2,970.00 | Exit $2,970.00 | Comms $7.03 | P&L $0.00 | Status: Closed
+2026-02-02 10:31:06,409 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:31:06,411 [INFO] utils.trades: Initial Baseline: 957.97
+2026-02-02 10:31:06,412 [INFO] utils.trades: Total Realized Cash: -14.06
+2026-02-02 10:31:06,413 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:31:06,414 [INFO] utils.trades: Final True P&L: -14.06
+2026-02-02 10:31:06,419 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:33:23,270 [INFO] utils.trades: LEG ID: 7 | CRWD 20260123 455.0Put | Qty: -4
+2026-02-02 10:33:23,278 [INFO] utils.trades:   > Realized: Entry $3,664.00 | Exit $-836.00 | Comms $4.14 | P&L $2,828.00 | Status: Closed
+2026-02-02 10:33:23,284 [INFO] utils.trades: LEG ID: 8 | CRWD 20260123 445.0Put | Qty: 4
+2026-02-02 10:33:23,300 [INFO] utils.trades:   > Realized: Entry $-2,740.00 | Exit $104.00 | Comms $4.13 | P&L $-2,636.00 | Status: Closed
+2026-02-02 10:33:23,307 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:33:23,311 [INFO] utils.trades: Initial Baseline: 921.35
+2026-02-02 10:33:23,312 [INFO] utils.trades: Total Realized Cash: 183.73
+2026-02-02 10:33:23,323 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:33:23,325 [INFO] utils.trades: Final True P&L: 183.73
+2026-02-02 10:33:23,327 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:33:23,340 [INFO] utils.trades: LEG ID: 9 | FISV 20260116 70.0Put | Qty: -4
+2026-02-02 10:33:23,343 [INFO] utils.trades:   > Realized: Entry $700.00 | Exit $-1,468.00 | Comms $5.63 | P&L $-768.00 | Status: Closed
+2026-02-02 10:33:23,358 [INFO] utils.trades: LEG ID: 10 | FISV 20260116 65.0Put | Qty: 4
+2026-02-02 10:33:23,361 [INFO] utils.trades:   > Realized: Entry $-68.00 | Exit $28.00 | Comms $5.02 | P&L $-40.00 | Status: Closed
+2026-02-02 10:33:23,373 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:33:23,377 [INFO] utils.trades: Initial Baseline: 626.38
+2026-02-02 10:33:23,390 [INFO] utils.trades: Total Realized Cash: -818.65
+2026-02-02 10:33:23,392 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:33:23,394 [INFO] utils.trades: Final True P&L: -818.65
+2026-02-02 10:33:23,395 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:33:23,406 [INFO] utils.trades: LEG ID: 11 | AMZN 20251128 220.0Call | Qty: -2
+2026-02-02 10:33:23,407 [INFO] utils.trades:   > Realized: Entry $1,038.00 | Exit $-1,740.00 | Comms $1.60 | P&L $-702.00 | Status: Rolled
+2026-02-02 10:33:23,409 [INFO] utils.trades: LEG ID: 12 | AMZN 20260320 220.0Call | Qty: 2
+2026-02-02 10:33:23,410 [INFO] utils.trades:   > Realized: Entry $-4,188.00 | Exit $5,024.00 | Comms $1.52 | P&L $836.00 | Status: Closed
+2026-02-02 10:33:23,412 [INFO] utils.trades: LEG ID: 15 | AMZN 20251205 227.5Call | Qty: -2
+2026-02-02 10:33:23,419 [INFO] utils.trades:   > Realized: Entry $1,114.00 | Exit $-648.00 | Comms $1.45 | P&L $466.00 | Status: Rolled
+2026-02-02 10:33:23,421 [INFO] utils.trades: LEG ID: 16 | AMZN 20251219 232.5Call | Qty: -2
+2026-02-02 10:33:23,422 [INFO] utils.trades:   > Realized: Entry $892.00 | Exit $-4.00 | Comms $1.32 | P&L $888.00 | Status: Rolled
+2026-02-02 10:33:23,422 [INFO] utils.trades: LEG ID: 17 | AMZN 20260102 235.0Call | Qty: -2
+2026-02-02 10:33:23,424 [INFO] utils.trades:   > Realized: Entry $246.00 | Exit $-72.00 | Comms $1.67 | P&L $174.00 | Status: Rolled
+2026-02-02 10:33:23,426 [INFO] utils.trades: LEG ID: 18 | AMZN 20260109 235.0Call | Qty: -2
+2026-02-02 10:33:23,428 [INFO] utils.trades:   > Realized: Entry $422.00 | Exit $-1,960.00 | Comms $2.38 | P&L $-1,538.00 | Status: Rolled
+2026-02-02 10:33:23,430 [INFO] utils.trades: LEG ID: 19 | AMZN 20260116 240.0Call | Qty: -2
+2026-02-02 10:33:23,437 [INFO] utils.trades:   > Realized: Entry $1,420.00 | Exit $-56.00 | Comms $2.12 | P&L $1,364.00 | Status: Closed
+2026-02-02 10:33:23,440 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:33:23,444 [INFO] utils.trades: Initial Baseline: -3,151.61
+2026-02-02 10:33:23,446 [INFO] utils.trades: Total Realized Cash: 1,475.94
+2026-02-02 10:33:23,452 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:33:23,453 [INFO] utils.trades: Final True P&L: 1,475.94
+2026-02-02 10:33:23,456 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:33:23,459 [INFO] utils.trades: LEG ID: 13 | SNDK 20260123 350.0Put | Qty: -3
+2026-02-02 10:33:23,461 [INFO] utils.trades:   > Realized: Entry $3,621.00 | Exit $-0.00 | Comms $0.28 | P&L $3,621.00 | Status: Closed
+2026-02-02 10:33:23,463 [INFO] utils.trades: LEG ID: 14 | SNDK 20260123 340.0Put | Qty: 3
+2026-02-02 10:33:23,467 [INFO] utils.trades:   > Realized: Entry $-2,781.00 | Exit $0.00 | Comms $0.28 | P&L $-2,781.00 | Status: Closed
+2026-02-02 10:33:23,469 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:33:23,473 [INFO] utils.trades: Initial Baseline: 839.44
+2026-02-02 10:33:23,476 [INFO] utils.trades: Total Realized Cash: 839.44
+2026-02-02 10:33:23,479 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:33:23,487 [INFO] utils.trades: Final True P&L: 839.44
+2026-02-02 10:33:23,491 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:33:23,495 [INFO] utils.trades: LEG ID: 20 | COST 20251031 935.0Call | Qty: -1
+2026-02-02 10:33:23,501 [INFO] utils.trades:   > Realized: Entry $1,289.00 | Exit $-2,142.00 | Comms $1.40 | P&L $-853.00 | Status: Rolled
+2026-02-02 10:33:23,503 [INFO] utils.trades: LEG ID: 21 | COST 20260116 935.0Call | Qty: 1
+2026-02-02 10:33:23,504 [INFO] utils.trades:   > Realized: Entry $-4,672.00 | Exit $2,237.00 | Comms $1.50 | P&L $-2,435.00 | Status: Closed
+2026-02-02 10:33:23,506 [INFO] utils.trades: LEG ID: 22 | COST 20251114 950.0Call | Qty: -1
+2026-02-02 10:33:23,507 [INFO] utils.trades:   > Realized: Entry $2,037.00 | Exit $-14.00 | Comms $1.75 | P&L $2,023.00 | Status: Rolled
+2026-02-02 10:33:23,509 [INFO] utils.trades: LEG ID: 23 | COST 20251121 940.0Call | Qty: -1
+2026-02-02 10:33:23,510 [INFO] utils.trades:   > Realized: Entry $427.00 | Exit $-3.00 | Comms $2.10 | P&L $424.00 | Status: Rolled
+2026-02-02 10:33:23,512 [INFO] utils.trades: LEG ID: 24 | COST 20251128 940.0Call | Qty: -1
+2026-02-02 10:33:23,519 [INFO] utils.trades:   > Realized: Entry $139.00 | Exit $-6.00 | Comms $2.10 | P&L $133.00 | Status: Rolled
+2026-02-02 10:33:23,520 [INFO] utils.trades: LEG ID: 25 | COST 20251205 940.0Call | Qty: -1
+2026-02-02 10:33:23,521 [INFO] utils.trades:   > Realized: Entry $111.00 | Exit $-8.00 | Comms $2.07 | P&L $103.00 | Status: Rolled
+2026-02-02 10:33:23,522 [INFO] utils.trades: LEG ID: 26 | COST 20251212 940.0Call | Qty: -1
+2026-02-02 10:33:23,524 [INFO] utils.trades:   > Realized: Entry $553.00 | Exit $-4.00 | Comms $1.70 | P&L $549.00 | Status: Rolled
+2026-02-02 10:33:23,527 [INFO] utils.trades: LEG ID: 27 | COST 20260102 945.0Call | Qty: -1
+2026-02-02 10:33:23,528 [INFO] utils.trades:   > Realized: Entry $137.00 | Exit $-0.00 | Comms $0.67 | P&L $137.00 | Status: Rolled
+2026-02-02 10:33:23,529 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:33:23,534 [INFO] utils.trades: Initial Baseline: -3,384.40
+2026-02-02 10:33:23,535 [INFO] utils.trades: Total Realized Cash: 67.71
+2026-02-02 10:33:23,537 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:33:23,539 [INFO] utils.trades: Final True P&L: 67.71
+2026-02-02 10:33:23,540 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:33:23,545 [INFO] utils.trades: LEG ID: 78 | NVO 20260320 50.0Call | Qty: 2
+2026-02-02 10:33:23,552 [INFO] utils.trades:   > Realized: Entry $-1,540.00 | Exit $2,050.00 | Comms $2.81 | P&L $510.00 | Status: Closed
+2026-02-02 10:33:23,555 [INFO] utils.trades: LEG ID: 79 | NVO 20260320 45.0Put | Qty: -2
+2026-02-02 10:33:23,555 [INFO] utils.trades:   > Realized: Entry $762.00 | Exit $-78.00 | Comms $2.81 | P&L $684.00 | Status: Closed
+2026-02-02 10:33:23,556 [INFO] utils.trades: LEG ID: 80 | NVO 20260320 40.0Put | Qty: 2
+2026-02-02 10:33:23,558 [INFO] utils.trades:   > Realized: Entry $-426.00 | Exit $28.00 | Comms $2.81 | P&L $-398.00 | Status: Closed
+2026-02-02 10:33:23,561 [INFO] utils.trades: LEG ID: 81 | NVO 20251003 60.0Call | Qty: -1
+2026-02-02 10:33:23,561 [INFO] utils.trades:   > Realized: Entry $100.00 | Exit $-12.00 | Comms $1.77 | P&L $88.00 | Status: Rolled
+2026-02-02 10:33:23,562 [INFO] utils.trades: LEG ID: 82 | NVO 20251017 62.0Call | Qty: -1
+2026-02-02 10:33:23,569 [INFO] utils.trades:   > Realized: Entry $68.00 | Exit $-136.00 | Comms $2.05 | P&L $-68.00 | Status: Rolled
+2026-02-02 10:33:23,574 [INFO] utils.trades: LEG ID: 83 | NVO 20251017 65.0Call | Qty: -2
+2026-02-02 10:33:23,575 [INFO] utils.trades:   > Realized: Entry $142.00 | Exit $-12.00 | Comms $2.75 | P&L $130.00 | Status: Rolled
+2026-02-02 10:33:23,577 [INFO] utils.trades: LEG ID: 84 | NVO 20251031 65.0Call | Qty: -2
+2026-02-02 10:33:23,578 [INFO] utils.trades:   > Realized: Entry $104.00 | Exit $-0.00 | Comms $0.70 | P&L $104.00 | Status: Rolled
+2026-02-02 10:33:23,587 [INFO] utils.trades: LEG ID: 85 | NVO 20251128 53.0Call | Qty: -2
+2026-02-02 10:33:23,589 [INFO] utils.trades:   > Realized: Entry $212.00 | Exit $-2.00 | Comms $2.39 | P&L $210.00 | Status: Rolled
+2026-02-02 10:33:23,590 [INFO] utils.trades: LEG ID: 86 | NVO 20251205 53.0Call | Qty: -2
+2026-02-02 10:33:23,591 [INFO] utils.trades:   > Realized: Entry $30.00 | Exit $-0.00 | Comms $0.70 | P&L $30.00 | Status: Rolled
+2026-02-02 10:33:23,592 [INFO] utils.trades: LEG ID: 87 | NVO 20260102 55.0Call | Qty: -2
+2026-02-02 10:33:23,593 [INFO] utils.trades:   > Realized: Entry $100.00 | Exit $-6.00 | Comms $3.32 | P&L $94.00 | Status: Rolled
+2026-02-02 10:33:23,594 [INFO] utils.trades: LEG ID: 88 | NVO 20260123 55.0Call | Qty: -2
+2026-02-02 10:33:23,605 [INFO] utils.trades:   > Realized: Entry $138.00 | Exit $-1,724.00 | Comms $2.04 | P&L $-1,586.00 | Status: Rolled
+2026-02-02 10:33:23,607 [INFO] utils.trades: LEG ID: 89 | NVO 20260206 55.0Call | Qty: -2
+2026-02-02 10:33:23,609 [INFO] utils.trades:   > Realized: Entry $1,816.00 | Exit $-1,660.00 | Comms $2.11 | P&L $156.00 | Status: Rolled
+2026-02-02 10:33:23,782 [INFO] utils.trades: LEG ID: 94 | NVO 20260213 58.0Call | Qty: -2
+2026-02-02 10:33:23,790 [INFO] utils.trades:   > Realized: Entry $1,236.00 | Exit $-682.00 | Comms $2.80 | P&L $554.00 | Status: Closed
+2026-02-02 10:33:23,860 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:33:23,903 [INFO] utils.trades: Initial Baseline: -1,108.95
+2026-02-02 10:33:23,979 [INFO] utils.trades: Total Realized Cash: 478.94
+2026-02-02 10:33:24,029 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:33:24,093 [INFO] utils.trades: Final True P&L: 478.94
+2026-02-02 10:33:24,130 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:33:24,154 [INFO] utils.trades: LEG ID: 90 | SNDK 20260130 420.0Put | Qty: -5
+2026-02-02 10:33:24,163 [INFO] utils.trades:   > Realized: Entry $3,935.00 | Exit $-3,935.00 | Comms $7.03 | P&L $0.00 | Status: Closed
+2026-02-02 10:33:24,170 [INFO] utils.trades: LEG ID: 91 | SNDK 20260130 410.0Put | Qty: 5
+2026-02-02 10:33:24,176 [INFO] utils.trades:   > Realized: Entry $-2,970.00 | Exit $2,970.00 | Comms $7.03 | P&L $0.00 | Status: Closed
+2026-02-02 10:33:24,179 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:33:24,186 [INFO] utils.trades: Initial Baseline: 957.97
+2026-02-02 10:33:24,189 [INFO] utils.trades: Total Realized Cash: -14.06
+2026-02-02 10:33:24,193 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:33:24,206 [INFO] utils.trades: Final True P&L: -14.06
+2026-02-02 10:33:24,208 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:36:59,803 [INFO] utils.trades: LEG ID: 7 | CRWD 20260123 455.0Put | Qty: -4
+2026-02-02 10:36:59,809 [INFO] utils.trades:   > Realized: Entry $3,664.00 | Exit $-836.00 | Comms $4.14 | P&L $2,828.00 | Status: Closed
+2026-02-02 10:36:59,816 [INFO] utils.trades: LEG ID: 8 | CRWD 20260123 445.0Put | Qty: 4
+2026-02-02 10:36:59,833 [INFO] utils.trades:   > Realized: Entry $-2,740.00 | Exit $104.00 | Comms $4.13 | P&L $-2,636.00 | Status: Closed
+2026-02-02 10:36:59,837 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:36:59,839 [INFO] utils.trades: Initial Baseline: 921.35
+2026-02-02 10:36:59,841 [INFO] utils.trades: Total Realized Cash: 183.73
+2026-02-02 10:36:59,852 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:36:59,854 [INFO] utils.trades: Final True P&L: 183.73
+2026-02-02 10:36:59,855 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:36:59,871 [INFO] utils.trades: LEG ID: 9 | FISV 20260116 70.0Put | Qty: -4
+2026-02-02 10:36:59,874 [INFO] utils.trades:   > Realized: Entry $700.00 | Exit $-1,468.00 | Comms $5.63 | P&L $-768.00 | Status: Closed
+2026-02-02 10:36:59,876 [INFO] utils.trades: LEG ID: 10 | FISV 20260116 65.0Put | Qty: 4
+2026-02-02 10:36:59,884 [INFO] utils.trades:   > Realized: Entry $-68.00 | Exit $28.00 | Comms $5.02 | P&L $-40.00 | Status: Closed
+2026-02-02 10:36:59,885 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:36:59,886 [INFO] utils.trades: Initial Baseline: 626.38
+2026-02-02 10:36:59,888 [INFO] utils.trades: Total Realized Cash: -818.65
+2026-02-02 10:36:59,889 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:36:59,890 [INFO] utils.trades: Final True P&L: -818.65
+2026-02-02 10:36:59,892 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:36:59,902 [INFO] utils.trades: LEG ID: 11 | AMZN 20251128 220.0Call | Qty: -2
+2026-02-02 10:36:59,904 [INFO] utils.trades:   > Realized: Entry $1,038.00 | Exit $-1,740.00 | Comms $1.60 | P&L $-702.00 | Status: Rolled
+2026-02-02 10:36:59,905 [INFO] utils.trades: LEG ID: 12 | AMZN 20260320 220.0Call | Qty: 2
+2026-02-02 10:36:59,906 [INFO] utils.trades:   > Realized: Entry $-4,188.00 | Exit $5,024.00 | Comms $1.52 | P&L $836.00 | Status: Closed
+2026-02-02 10:36:59,907 [INFO] utils.trades: LEG ID: 15 | AMZN 20251205 227.5Call | Qty: -2
+2026-02-02 10:36:59,908 [INFO] utils.trades:   > Realized: Entry $1,114.00 | Exit $-648.00 | Comms $1.45 | P&L $466.00 | Status: Rolled
+2026-02-02 10:36:59,914 [INFO] utils.trades: LEG ID: 16 | AMZN 20251219 232.5Call | Qty: -2
+2026-02-02 10:36:59,919 [INFO] utils.trades:   > Realized: Entry $892.00 | Exit $-4.00 | Comms $1.32 | P&L $888.00 | Status: Rolled
+2026-02-02 10:36:59,922 [INFO] utils.trades: LEG ID: 17 | AMZN 20260102 235.0Call | Qty: -2
+2026-02-02 10:36:59,925 [INFO] utils.trades:   > Realized: Entry $246.00 | Exit $-72.00 | Comms $1.67 | P&L $174.00 | Status: Rolled
+2026-02-02 10:36:59,927 [INFO] utils.trades: LEG ID: 18 | AMZN 20260109 235.0Call | Qty: -2
+2026-02-02 10:36:59,938 [INFO] utils.trades:   > Realized: Entry $422.00 | Exit $-1,960.00 | Comms $2.38 | P&L $-1,538.00 | Status: Rolled
+2026-02-02 10:36:59,940 [INFO] utils.trades: LEG ID: 19 | AMZN 20260116 240.0Call | Qty: -2
+2026-02-02 10:36:59,948 [INFO] utils.trades:   > Realized: Entry $1,420.00 | Exit $-56.00 | Comms $2.12 | P&L $1,364.00 | Status: Closed
+2026-02-02 10:36:59,955 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:36:59,959 [INFO] utils.trades: Initial Baseline: -3,151.61
+2026-02-02 10:36:59,971 [INFO] utils.trades: Total Realized Cash: 1,475.94
+2026-02-02 10:36:59,976 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:36:59,985 [INFO] utils.trades: Final True P&L: 1,475.94
+2026-02-02 10:37:00,005 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:37:00,034 [INFO] utils.trades: LEG ID: 13 | SNDK 20260123 350.0Put | Qty: -3
+2026-02-02 10:37:00,057 [INFO] utils.trades:   > Realized: Entry $3,621.00 | Exit $-0.00 | Comms $0.28 | P&L $3,621.00 | Status: Closed
+2026-02-02 10:37:00,099 [INFO] utils.trades: LEG ID: 14 | SNDK 20260123 340.0Put | Qty: 3
+2026-02-02 10:37:00,121 [INFO] utils.trades:   > Realized: Entry $-2,781.00 | Exit $0.00 | Comms $0.28 | P&L $-2,781.00 | Status: Closed
+2026-02-02 10:37:00,126 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:37:00,138 [INFO] utils.trades: Initial Baseline: 839.44
+2026-02-02 10:37:00,141 [INFO] utils.trades: Total Realized Cash: 839.44
+2026-02-02 10:37:00,150 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:37:00,153 [INFO] utils.trades: Final True P&L: 839.44
+2026-02-02 10:37:00,156 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:37:00,170 [INFO] utils.trades: LEG ID: 20 | COST 20251031 935.0Call | Qty: -1
+2026-02-02 10:37:00,172 [INFO] utils.trades:   > Realized: Entry $1,289.00 | Exit $-2,142.00 | Comms $1.40 | P&L $-853.00 | Status: Rolled
+2026-02-02 10:37:00,176 [INFO] utils.trades: LEG ID: 21 | COST 20260116 935.0Call | Qty: 1
+2026-02-02 10:37:00,180 [INFO] utils.trades:   > Realized: Entry $-4,672.00 | Exit $2,237.00 | Comms $1.50 | P&L $-2,435.00 | Status: Closed
+2026-02-02 10:37:00,183 [INFO] utils.trades: LEG ID: 22 | COST 20251114 950.0Call | Qty: -1
+2026-02-02 10:37:00,189 [INFO] utils.trades:   > Realized: Entry $2,037.00 | Exit $-14.00 | Comms $1.75 | P&L $2,023.00 | Status: Rolled
+2026-02-02 10:37:00,191 [INFO] utils.trades: LEG ID: 23 | COST 20251121 940.0Call | Qty: -1
+2026-02-02 10:37:00,197 [INFO] utils.trades:   > Realized: Entry $427.00 | Exit $-3.00 | Comms $2.10 | P&L $424.00 | Status: Rolled
+2026-02-02 10:37:00,199 [INFO] utils.trades: LEG ID: 24 | COST 20251128 940.0Call | Qty: -1
+2026-02-02 10:37:00,200 [INFO] utils.trades:   > Realized: Entry $139.00 | Exit $-6.00 | Comms $2.10 | P&L $133.00 | Status: Rolled
+2026-02-02 10:37:00,204 [INFO] utils.trades: LEG ID: 25 | COST 20251205 940.0Call | Qty: -1
+2026-02-02 10:37:00,206 [INFO] utils.trades:   > Realized: Entry $111.00 | Exit $-8.00 | Comms $2.07 | P&L $103.00 | Status: Rolled
+2026-02-02 10:37:00,207 [INFO] utils.trades: LEG ID: 26 | COST 20251212 940.0Call | Qty: -1
+2026-02-02 10:37:00,209 [INFO] utils.trades:   > Realized: Entry $553.00 | Exit $-4.00 | Comms $1.70 | P&L $549.00 | Status: Rolled
+2026-02-02 10:37:00,214 [INFO] utils.trades: LEG ID: 27 | COST 20260102 945.0Call | Qty: -1
+2026-02-02 10:37:00,216 [INFO] utils.trades:   > Realized: Entry $137.00 | Exit $-0.00 | Comms $0.67 | P&L $137.00 | Status: Rolled
+2026-02-02 10:37:00,217 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:37:00,219 [INFO] utils.trades: Initial Baseline: -3,384.40
+2026-02-02 10:37:00,221 [INFO] utils.trades: Total Realized Cash: 67.71
+2026-02-02 10:37:00,223 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:37:00,226 [INFO] utils.trades: Final True P&L: 67.71
+2026-02-02 10:37:00,236 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:37:00,240 [INFO] utils.trades: LEG ID: 78 | NVO 20260320 50.0Call | Qty: 2
+2026-02-02 10:37:00,243 [INFO] utils.trades:   > Realized: Entry $-1,540.00 | Exit $2,050.00 | Comms $2.81 | P&L $510.00 | Status: Closed
+2026-02-02 10:37:00,249 [INFO] utils.trades: LEG ID: 79 | NVO 20260320 45.0Put | Qty: -2
+2026-02-02 10:37:00,252 [INFO] utils.trades:   > Realized: Entry $762.00 | Exit $-78.00 | Comms $2.81 | P&L $684.00 | Status: Closed
+2026-02-02 10:37:00,254 [INFO] utils.trades: LEG ID: 80 | NVO 20260320 40.0Put | Qty: 2
+2026-02-02 10:37:00,255 [INFO] utils.trades:   > Realized: Entry $-426.00 | Exit $28.00 | Comms $2.81 | P&L $-398.00 | Status: Closed
+2026-02-02 10:37:00,259 [INFO] utils.trades: LEG ID: 81 | NVO 20251003 60.0Call | Qty: -1
+2026-02-02 10:37:00,264 [INFO] utils.trades:   > Realized: Entry $100.00 | Exit $-12.00 | Comms $1.77 | P&L $88.00 | Status: Rolled
+2026-02-02 10:37:00,274 [INFO] utils.trades: LEG ID: 82 | NVO 20251017 62.0Call | Qty: -1
+2026-02-02 10:37:00,281 [INFO] utils.trades:   > Realized: Entry $68.00 | Exit $-136.00 | Comms $2.05 | P&L $-68.00 | Status: Rolled
+2026-02-02 10:37:00,288 [INFO] utils.trades: LEG ID: 83 | NVO 20251017 65.0Call | Qty: -2
+2026-02-02 10:37:00,289 [INFO] utils.trades:   > Realized: Entry $142.00 | Exit $-12.00 | Comms $2.75 | P&L $130.00 | Status: Rolled
+2026-02-02 10:37:00,292 [INFO] utils.trades: LEG ID: 84 | NVO 20251031 65.0Call | Qty: -2
+2026-02-02 10:37:00,298 [INFO] utils.trades:   > Realized: Entry $104.00 | Exit $-0.00 | Comms $0.70 | P&L $104.00 | Status: Rolled
+2026-02-02 10:37:00,300 [INFO] utils.trades: LEG ID: 85 | NVO 20251128 53.0Call | Qty: -2
+2026-02-02 10:37:00,301 [INFO] utils.trades:   > Realized: Entry $212.00 | Exit $-2.00 | Comms $2.39 | P&L $210.00 | Status: Rolled
+2026-02-02 10:37:00,303 [INFO] utils.trades: LEG ID: 86 | NVO 20251205 53.0Call | Qty: -2
+2026-02-02 10:37:00,304 [INFO] utils.trades:   > Realized: Entry $30.00 | Exit $-0.00 | Comms $0.70 | P&L $30.00 | Status: Rolled
+2026-02-02 10:37:00,305 [INFO] utils.trades: LEG ID: 87 | NVO 20260102 55.0Call | Qty: -2
+2026-02-02 10:37:00,306 [INFO] utils.trades:   > Realized: Entry $100.00 | Exit $-6.00 | Comms $3.32 | P&L $94.00 | Status: Rolled
+2026-02-02 10:37:00,307 [INFO] utils.trades: LEG ID: 88 | NVO 20260123 55.0Call | Qty: -2
+2026-02-02 10:37:00,309 [INFO] utils.trades:   > Realized: Entry $138.00 | Exit $-1,724.00 | Comms $2.04 | P&L $-1,586.00 | Status: Rolled
+2026-02-02 10:37:00,312 [INFO] utils.trades: LEG ID: 89 | NVO 20260206 55.0Call | Qty: -2
+2026-02-02 10:37:00,316 [INFO] utils.trades:   > Realized: Entry $1,816.00 | Exit $-1,660.00 | Comms $2.11 | P&L $156.00 | Status: Rolled
+2026-02-02 10:37:00,317 [INFO] utils.trades: LEG ID: 94 | NVO 20260213 58.0Call | Qty: -2
+2026-02-02 10:37:00,318 [INFO] utils.trades:   > Realized: Entry $1,236.00 | Exit $-682.00 | Comms $2.80 | P&L $554.00 | Status: Closed
+2026-02-02 10:37:00,321 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:37:00,322 [INFO] utils.trades: Initial Baseline: -1,108.95
+2026-02-02 10:37:00,325 [INFO] utils.trades: Total Realized Cash: 478.94
+2026-02-02 10:37:00,326 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:37:00,327 [INFO] utils.trades: Final True P&L: 478.94
+2026-02-02 10:37:00,331 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:37:00,336 [INFO] utils.trades: LEG ID: 90 | SNDK 20260130 420.0Put | Qty: -5
+2026-02-02 10:37:00,337 [INFO] utils.trades:   > Realized: Entry $3,935.00 | Exit $-3,935.00 | Comms $7.03 | P&L $0.00 | Status: Closed
+2026-02-02 10:37:00,338 [INFO] utils.trades: LEG ID: 91 | SNDK 20260130 410.0Put | Qty: 5
+2026-02-02 10:37:00,338 [INFO] utils.trades:   > Realized: Entry $-2,970.00 | Exit $2,970.00 | Comms $7.03 | P&L $0.00 | Status: Closed
+2026-02-02 10:37:00,339 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:37:00,340 [INFO] utils.trades: Initial Baseline: 957.97
+2026-02-02 10:37:00,342 [INFO] utils.trades: Total Realized Cash: -14.06
+2026-02-02 10:37:00,343 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:37:00,345 [INFO] utils.trades: Final True P&L: -14.06
+2026-02-02 10:37:00,349 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:21,902 [DEBUG] __main__: Starting Closed Trades page
+2026-02-02 10:38:22,147 [DEBUG] __main__: fetch_trades() INITIATED
+2026-02-02 10:38:22,156 [DEBUG] __main__: fetch_trades() took 0.01 seconds
+2026-02-02 10:38:22,157 [DEBUG] __main__: trades_to_df() INITIATED
+2026-02-02 10:38:22,211 [DEBUG] __main__: trades_to_df() took 0.05 seconds
+2026-02-02 10:38:22,213 [DEBUG] __main__: load_closed_trades() INITIATED
+2026-02-02 10:38:22,240 [DEBUG] __main__: load_closed_trades() took 0.03 seconds
+2026-02-02 10:38:22,243 [DEBUG] __main__: closed_df styling INITIATED
+2026-02-02 10:38:22,858 [DEBUG] __main__: closed_df styling took 0.61 seconds
+2026-02-02 10:38:22,930 [INFO] utils.trades: LEG ID: 90 | SNDK 20260130 420.0Put | Qty: -5
+2026-02-02 10:38:22,933 [INFO] utils.trades:   > Realized: Entry $3,935.00 | Exit $-3,935.00 | Comms $7.03 | P&L $0.00 | Status: Closed
+2026-02-02 10:38:22,935 [INFO] utils.trades: LEG ID: 91 | SNDK 20260130 410.0Put | Qty: 5
+2026-02-02 10:38:22,936 [INFO] utils.trades:   > Realized: Entry $-2,970.00 | Exit $2,970.00 | Comms $7.03 | P&L $0.00 | Status: Closed
+2026-02-02 10:38:22,936 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:22,937 [INFO] utils.trades: Initial Baseline: 957.97
+2026-02-02 10:38:22,939 [INFO] utils.trades: Total Realized Cash: -14.06
+2026-02-02 10:38:22,940 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:22,940 [INFO] utils.trades: Final True P&L: -14.06
+2026-02-02 10:38:22,941 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:22,947 [INFO] utils.trades: LEG ID: 78 | NVO 20260320 50.0Call | Qty: 2
+2026-02-02 10:38:22,954 [INFO] utils.trades:   > Realized: Entry $-1,540.00 | Exit $2,050.00 | Comms $2.81 | P&L $510.00 | Status: Closed
+2026-02-02 10:38:22,956 [INFO] utils.trades: LEG ID: 79 | NVO 20260320 45.0Put | Qty: -2
+2026-02-02 10:38:22,958 [INFO] utils.trades:   > Realized: Entry $762.00 | Exit $-78.00 | Comms $2.81 | P&L $684.00 | Status: Closed
+2026-02-02 10:38:22,961 [INFO] utils.trades: LEG ID: 80 | NVO 20260320 40.0Put | Qty: 2
+2026-02-02 10:38:22,969 [INFO] utils.trades:   > Realized: Entry $-426.00 | Exit $28.00 | Comms $2.81 | P&L $-398.00 | Status: Closed
+2026-02-02 10:38:22,970 [INFO] utils.trades: LEG ID: 81 | NVO 20251003 60.0Call | Qty: -1
+2026-02-02 10:38:22,972 [INFO] utils.trades:   > Realized: Entry $100.00 | Exit $-12.00 | Comms $1.77 | P&L $88.00 | Status: Rolled
+2026-02-02 10:38:22,972 [INFO] utils.trades: LEG ID: 82 | NVO 20251017 62.0Call | Qty: -1
+2026-02-02 10:38:22,973 [INFO] utils.trades:   > Realized: Entry $68.00 | Exit $-136.00 | Comms $2.05 | P&L $-68.00 | Status: Rolled
+2026-02-02 10:38:22,973 [INFO] utils.trades: LEG ID: 83 | NVO 20251017 65.0Call | Qty: -2
+2026-02-02 10:38:22,974 [INFO] utils.trades:   > Realized: Entry $142.00 | Exit $-12.00 | Comms $2.75 | P&L $130.00 | Status: Rolled
+2026-02-02 10:38:22,976 [INFO] utils.trades: LEG ID: 84 | NVO 20251031 65.0Call | Qty: -2
+2026-02-02 10:38:22,980 [INFO] utils.trades:   > Realized: Entry $104.00 | Exit $-0.00 | Comms $0.70 | P&L $104.00 | Status: Rolled
+2026-02-02 10:38:22,985 [INFO] utils.trades: LEG ID: 85 | NVO 20251128 53.0Call | Qty: -2
+2026-02-02 10:38:22,985 [INFO] utils.trades:   > Realized: Entry $212.00 | Exit $-2.00 | Comms $2.39 | P&L $210.00 | Status: Rolled
+2026-02-02 10:38:22,986 [INFO] utils.trades: LEG ID: 86 | NVO 20251205 53.0Call | Qty: -2
+2026-02-02 10:38:22,987 [INFO] utils.trades:   > Realized: Entry $30.00 | Exit $-0.00 | Comms $0.70 | P&L $30.00 | Status: Rolled
+2026-02-02 10:38:22,987 [INFO] utils.trades: LEG ID: 87 | NVO 20260102 55.0Call | Qty: -2
+2026-02-02 10:38:22,988 [INFO] utils.trades:   > Realized: Entry $100.00 | Exit $-6.00 | Comms $3.32 | P&L $94.00 | Status: Rolled
+2026-02-02 10:38:22,988 [INFO] utils.trades: LEG ID: 88 | NVO 20260123 55.0Call | Qty: -2
+2026-02-02 10:38:23,000 [INFO] utils.trades:   > Realized: Entry $138.00 | Exit $-1,724.00 | Comms $2.04 | P&L $-1,586.00 | Status: Rolled
+2026-02-02 10:38:23,001 [INFO] utils.trades: LEG ID: 89 | NVO 20260206 55.0Call | Qty: -2
+2026-02-02 10:38:23,002 [INFO] utils.trades:   > Realized: Entry $1,816.00 | Exit $-1,660.00 | Comms $2.11 | P&L $156.00 | Status: Rolled
+2026-02-02 10:38:23,005 [INFO] utils.trades: LEG ID: 94 | NVO 20260213 58.0Call | Qty: -2
+2026-02-02 10:38:23,007 [INFO] utils.trades:   > Realized: Entry $1,236.00 | Exit $-682.00 | Comms $2.80 | P&L $554.00 | Status: Closed
+2026-02-02 10:38:23,011 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:23,014 [INFO] utils.trades: Initial Baseline: -1,108.95
+2026-02-02 10:38:23,016 [INFO] utils.trades: Total Realized Cash: 478.94
+2026-02-02 10:38:23,016 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:23,018 [INFO] utils.trades: Final True P&L: 478.94
+2026-02-02 10:38:23,020 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:23,032 [INFO] utils.trades: LEG ID: 20 | COST 20251031 935.0Call | Qty: -1
+2026-02-02 10:38:23,033 [INFO] utils.trades:   > Realized: Entry $1,289.00 | Exit $-2,142.00 | Comms $1.40 | P&L $-853.00 | Status: Rolled
+2026-02-02 10:38:23,033 [INFO] utils.trades: LEG ID: 21 | COST 20260116 935.0Call | Qty: 1
+2026-02-02 10:38:23,034 [INFO] utils.trades:   > Realized: Entry $-4,672.00 | Exit $2,237.00 | Comms $1.50 | P&L $-2,435.00 | Status: Closed
+2026-02-02 10:38:23,035 [INFO] utils.trades: LEG ID: 22 | COST 20251114 950.0Call | Qty: -1
+2026-02-02 10:38:23,036 [INFO] utils.trades:   > Realized: Entry $2,037.00 | Exit $-14.00 | Comms $1.75 | P&L $2,023.00 | Status: Rolled
+2026-02-02 10:38:23,037 [INFO] utils.trades: LEG ID: 23 | COST 20251121 940.0Call | Qty: -1
+2026-02-02 10:38:23,037 [INFO] utils.trades:   > Realized: Entry $427.00 | Exit $-3.00 | Comms $2.10 | P&L $424.00 | Status: Rolled
+2026-02-02 10:38:23,038 [INFO] utils.trades: LEG ID: 24 | COST 20251128 940.0Call | Qty: -1
+2026-02-02 10:38:23,038 [INFO] utils.trades:   > Realized: Entry $139.00 | Exit $-6.00 | Comms $2.10 | P&L $133.00 | Status: Rolled
+2026-02-02 10:38:23,039 [INFO] utils.trades: LEG ID: 25 | COST 20251205 940.0Call | Qty: -1
+2026-02-02 10:38:23,039 [INFO] utils.trades:   > Realized: Entry $111.00 | Exit $-8.00 | Comms $2.07 | P&L $103.00 | Status: Rolled
+2026-02-02 10:38:23,040 [INFO] utils.trades: LEG ID: 26 | COST 20251212 940.0Call | Qty: -1
+2026-02-02 10:38:23,041 [INFO] utils.trades:   > Realized: Entry $553.00 | Exit $-4.00 | Comms $1.70 | P&L $549.00 | Status: Rolled
+2026-02-02 10:38:23,042 [INFO] utils.trades: LEG ID: 27 | COST 20260102 945.0Call | Qty: -1
+2026-02-02 10:38:23,043 [INFO] utils.trades:   > Realized: Entry $137.00 | Exit $-0.00 | Comms $0.67 | P&L $137.00 | Status: Rolled
+2026-02-02 10:38:23,049 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:23,055 [INFO] utils.trades: Initial Baseline: -3,384.40
+2026-02-02 10:38:23,058 [INFO] utils.trades: Total Realized Cash: 67.71
+2026-02-02 10:38:23,074 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:23,075 [INFO] utils.trades: Final True P&L: 67.71
+2026-02-02 10:38:23,076 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:23,085 [INFO] utils.trades: LEG ID: 13 | SNDK 20260123 350.0Put | Qty: -3
+2026-02-02 10:38:23,086 [INFO] utils.trades:   > Realized: Entry $3,621.00 | Exit $-0.00 | Comms $0.28 | P&L $3,621.00 | Status: Closed
+2026-02-02 10:38:23,087 [INFO] utils.trades: LEG ID: 14 | SNDK 20260123 340.0Put | Qty: 3
+2026-02-02 10:38:23,088 [INFO] utils.trades:   > Realized: Entry $-2,781.00 | Exit $0.00 | Comms $0.28 | P&L $-2,781.00 | Status: Closed
+2026-02-02 10:38:23,088 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:23,089 [INFO] utils.trades: Initial Baseline: 839.44
+2026-02-02 10:38:23,090 [INFO] utils.trades: Total Realized Cash: 839.44
+2026-02-02 10:38:23,090 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:23,091 [INFO] utils.trades: Final True P&L: 839.44
+2026-02-02 10:38:23,091 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:23,097 [INFO] utils.trades: LEG ID: 11 | AMZN 20251128 220.0Call | Qty: -2
+2026-02-02 10:38:23,098 [INFO] utils.trades:   > Realized: Entry $1,038.00 | Exit $-1,740.00 | Comms $1.60 | P&L $-702.00 | Status: Rolled
+2026-02-02 10:38:23,100 [INFO] utils.trades: LEG ID: 12 | AMZN 20260320 220.0Call | Qty: 2
+2026-02-02 10:38:23,101 [INFO] utils.trades:   > Realized: Entry $-4,188.00 | Exit $5,024.00 | Comms $1.52 | P&L $836.00 | Status: Closed
+2026-02-02 10:38:23,101 [INFO] utils.trades: LEG ID: 15 | AMZN 20251205 227.5Call | Qty: -2
+2026-02-02 10:38:23,105 [INFO] utils.trades:   > Realized: Entry $1,114.00 | Exit $-648.00 | Comms $1.45 | P&L $466.00 | Status: Rolled
+2026-02-02 10:38:23,106 [INFO] utils.trades: LEG ID: 16 | AMZN 20251219 232.5Call | Qty: -2
+2026-02-02 10:38:23,107 [INFO] utils.trades:   > Realized: Entry $892.00 | Exit $-4.00 | Comms $1.32 | P&L $888.00 | Status: Rolled
+2026-02-02 10:38:23,108 [INFO] utils.trades: LEG ID: 17 | AMZN 20260102 235.0Call | Qty: -2
+2026-02-02 10:38:23,109 [INFO] utils.trades:   > Realized: Entry $246.00 | Exit $-72.00 | Comms $1.67 | P&L $174.00 | Status: Rolled
+2026-02-02 10:38:23,109 [INFO] utils.trades: LEG ID: 18 | AMZN 20260109 235.0Call | Qty: -2
+2026-02-02 10:38:23,113 [INFO] utils.trades:   > Realized: Entry $422.00 | Exit $-1,960.00 | Comms $2.38 | P&L $-1,538.00 | Status: Rolled
+2026-02-02 10:38:23,114 [INFO] utils.trades: LEG ID: 19 | AMZN 20260116 240.0Call | Qty: -2
+2026-02-02 10:38:23,115 [INFO] utils.trades:   > Realized: Entry $1,420.00 | Exit $-56.00 | Comms $2.12 | P&L $1,364.00 | Status: Closed
+2026-02-02 10:38:23,116 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:23,117 [INFO] utils.trades: Initial Baseline: -3,151.61
+2026-02-02 10:38:23,118 [INFO] utils.trades: Total Realized Cash: 1,475.94
+2026-02-02 10:38:23,120 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:23,121 [INFO] utils.trades: Final True P&L: 1,475.94
+2026-02-02 10:38:23,122 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:23,130 [INFO] utils.trades: LEG ID: 9 | FISV 20260116 70.0Put | Qty: -4
+2026-02-02 10:38:23,131 [INFO] utils.trades:   > Realized: Entry $700.00 | Exit $-1,468.00 | Comms $5.63 | P&L $-768.00 | Status: Closed
+2026-02-02 10:38:23,133 [INFO] utils.trades: LEG ID: 10 | FISV 20260116 65.0Put | Qty: 4
+2026-02-02 10:38:23,133 [INFO] utils.trades:   > Realized: Entry $-68.00 | Exit $28.00 | Comms $5.02 | P&L $-40.00 | Status: Closed
+2026-02-02 10:38:23,134 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:23,135 [INFO] utils.trades: Initial Baseline: 626.38
+2026-02-02 10:38:23,136 [INFO] utils.trades: Total Realized Cash: -818.65
+2026-02-02 10:38:23,137 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:23,138 [INFO] utils.trades: Final True P&L: -818.65
+2026-02-02 10:38:23,139 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:23,147 [INFO] utils.trades: LEG ID: 7 | CRWD 20260123 455.0Put | Qty: -4
+2026-02-02 10:38:23,148 [INFO] utils.trades:   > Realized: Entry $3,664.00 | Exit $-836.00 | Comms $4.14 | P&L $2,828.00 | Status: Closed
+2026-02-02 10:38:23,149 [INFO] utils.trades: LEG ID: 8 | CRWD 20260123 445.0Put | Qty: 4
+2026-02-02 10:38:23,149 [INFO] utils.trades:   > Realized: Entry $-2,740.00 | Exit $104.00 | Comms $4.13 | P&L $-2,636.00 | Status: Closed
+2026-02-02 10:38:23,150 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:23,151 [INFO] utils.trades: Initial Baseline: 921.35
+2026-02-02 10:38:23,152 [INFO] utils.trades: Total Realized Cash: 183.73
+2026-02-02 10:38:23,152 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:23,153 [INFO] utils.trades: Final True P&L: 183.73
+2026-02-02 10:38:23,154 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:45,123 [INFO] utils.trades: LEG ID: 7 | CRWD 20260123 455.0Put | Qty: -4
+2026-02-02 10:38:45,125 [INFO] utils.trades:   > Realized: Entry $3,664.00 | Exit $-836.00 | Comms $4.14 | P&L $2,828.00 | Status: Closed
+2026-02-02 10:38:45,128 [INFO] utils.trades: LEG ID: 8 | CRWD 20260123 445.0Put | Qty: 4
+2026-02-02 10:38:45,131 [INFO] utils.trades:   > Realized: Entry $-2,740.00 | Exit $104.00 | Comms $4.13 | P&L $-2,636.00 | Status: Closed
+2026-02-02 10:38:45,132 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:45,133 [INFO] utils.trades: Initial Baseline: 921.35
+2026-02-02 10:38:45,136 [INFO] utils.trades: Total Realized Cash: 183.73
+2026-02-02 10:38:45,136 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:45,137 [INFO] utils.trades: Final True P&L: 183.73
+2026-02-02 10:38:45,138 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:45,142 [INFO] utils.trades: LEG ID: 9 | FISV 20260116 70.0Put | Qty: -4
+2026-02-02 10:38:45,144 [INFO] utils.trades:   > Realized: Entry $700.00 | Exit $-1,468.00 | Comms $5.63 | P&L $-768.00 | Status: Closed
+2026-02-02 10:38:45,146 [INFO] utils.trades: LEG ID: 10 | FISV 20260116 65.0Put | Qty: 4
+2026-02-02 10:38:45,147 [INFO] utils.trades:   > Realized: Entry $-68.00 | Exit $28.00 | Comms $5.02 | P&L $-40.00 | Status: Closed
+2026-02-02 10:38:45,148 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:45,151 [INFO] utils.trades: Initial Baseline: 626.38
+2026-02-02 10:38:45,152 [INFO] utils.trades: Total Realized Cash: -818.65
+2026-02-02 10:38:45,153 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:45,154 [INFO] utils.trades: Final True P&L: -818.65
+2026-02-02 10:38:45,155 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:45,158 [INFO] utils.trades: LEG ID: 11 | AMZN 20251128 220.0Call | Qty: -2
+2026-02-02 10:38:45,160 [INFO] utils.trades:   > Realized: Entry $1,038.00 | Exit $-1,740.00 | Comms $1.60 | P&L $-702.00 | Status: Rolled
+2026-02-02 10:38:45,164 [INFO] utils.trades: LEG ID: 12 | AMZN 20260320 220.0Call | Qty: 2
+2026-02-02 10:38:45,165 [INFO] utils.trades:   > Realized: Entry $-4,188.00 | Exit $5,024.00 | Comms $1.52 | P&L $836.00 | Status: Closed
+2026-02-02 10:38:45,166 [INFO] utils.trades: LEG ID: 15 | AMZN 20251205 227.5Call | Qty: -2
+2026-02-02 10:38:45,167 [INFO] utils.trades:   > Realized: Entry $1,114.00 | Exit $-648.00 | Comms $1.45 | P&L $466.00 | Status: Rolled
+2026-02-02 10:38:45,168 [INFO] utils.trades: LEG ID: 16 | AMZN 20251219 232.5Call | Qty: -2
+2026-02-02 10:38:45,169 [INFO] utils.trades:   > Realized: Entry $892.00 | Exit $-4.00 | Comms $1.32 | P&L $888.00 | Status: Rolled
+2026-02-02 10:38:45,169 [INFO] utils.trades: LEG ID: 17 | AMZN 20260102 235.0Call | Qty: -2
+2026-02-02 10:38:45,170 [INFO] utils.trades:   > Realized: Entry $246.00 | Exit $-72.00 | Comms $1.67 | P&L $174.00 | Status: Rolled
+2026-02-02 10:38:45,171 [INFO] utils.trades: LEG ID: 18 | AMZN 20260109 235.0Call | Qty: -2
+2026-02-02 10:38:45,172 [INFO] utils.trades:   > Realized: Entry $422.00 | Exit $-1,960.00 | Comms $2.38 | P&L $-1,538.00 | Status: Rolled
+2026-02-02 10:38:45,173 [INFO] utils.trades: LEG ID: 19 | AMZN 20260116 240.0Call | Qty: -2
+2026-02-02 10:38:45,174 [INFO] utils.trades:   > Realized: Entry $1,420.00 | Exit $-56.00 | Comms $2.12 | P&L $1,364.00 | Status: Closed
+2026-02-02 10:38:45,175 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:45,175 [INFO] utils.trades: Initial Baseline: -3,151.61
+2026-02-02 10:38:45,176 [INFO] utils.trades: Total Realized Cash: 1,475.94
+2026-02-02 10:38:45,180 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:45,181 [INFO] utils.trades: Final True P&L: 1,475.94
+2026-02-02 10:38:45,182 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:45,185 [INFO] utils.trades: LEG ID: 13 | SNDK 20260123 350.0Put | Qty: -3
+2026-02-02 10:38:45,186 [INFO] utils.trades:   > Realized: Entry $3,621.00 | Exit $-0.00 | Comms $0.28 | P&L $3,621.00 | Status: Closed
+2026-02-02 10:38:45,187 [INFO] utils.trades: LEG ID: 14 | SNDK 20260123 340.0Put | Qty: 3
+2026-02-02 10:38:45,187 [INFO] utils.trades:   > Realized: Entry $-2,781.00 | Exit $0.00 | Comms $0.28 | P&L $-2,781.00 | Status: Closed
+2026-02-02 10:38:45,188 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:45,189 [INFO] utils.trades: Initial Baseline: 839.44
+2026-02-02 10:38:45,190 [INFO] utils.trades: Total Realized Cash: 839.44
+2026-02-02 10:38:45,191 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:45,191 [INFO] utils.trades: Final True P&L: 839.44
+2026-02-02 10:38:45,192 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:45,198 [INFO] utils.trades: LEG ID: 20 | COST 20251031 935.0Call | Qty: -1
+2026-02-02 10:38:45,200 [INFO] utils.trades:   > Realized: Entry $1,289.00 | Exit $-2,142.00 | Comms $1.40 | P&L $-853.00 | Status: Rolled
+2026-02-02 10:38:45,201 [INFO] utils.trades: LEG ID: 21 | COST 20260116 935.0Call | Qty: 1
+2026-02-02 10:38:45,201 [INFO] utils.trades:   > Realized: Entry $-4,672.00 | Exit $2,237.00 | Comms $1.50 | P&L $-2,435.00 | Status: Closed
+2026-02-02 10:38:45,202 [INFO] utils.trades: LEG ID: 22 | COST 20251114 950.0Call | Qty: -1
+2026-02-02 10:38:45,203 [INFO] utils.trades:   > Realized: Entry $2,037.00 | Exit $-14.00 | Comms $1.75 | P&L $2,023.00 | Status: Rolled
+2026-02-02 10:38:45,204 [INFO] utils.trades: LEG ID: 23 | COST 20251121 940.0Call | Qty: -1
+2026-02-02 10:38:45,205 [INFO] utils.trades:   > Realized: Entry $427.00 | Exit $-3.00 | Comms $2.10 | P&L $424.00 | Status: Rolled
+2026-02-02 10:38:45,205 [INFO] utils.trades: LEG ID: 24 | COST 20251128 940.0Call | Qty: -1
+2026-02-02 10:38:45,206 [INFO] utils.trades:   > Realized: Entry $139.00 | Exit $-6.00 | Comms $2.10 | P&L $133.00 | Status: Rolled
+2026-02-02 10:38:45,207 [INFO] utils.trades: LEG ID: 25 | COST 20251205 940.0Call | Qty: -1
+2026-02-02 10:38:45,207 [INFO] utils.trades:   > Realized: Entry $111.00 | Exit $-8.00 | Comms $2.07 | P&L $103.00 | Status: Rolled
+2026-02-02 10:38:45,208 [INFO] utils.trades: LEG ID: 26 | COST 20251212 940.0Call | Qty: -1
+2026-02-02 10:38:45,209 [INFO] utils.trades:   > Realized: Entry $553.00 | Exit $-4.00 | Comms $1.70 | P&L $549.00 | Status: Rolled
+2026-02-02 10:38:45,211 [INFO] utils.trades: LEG ID: 27 | COST 20260102 945.0Call | Qty: -1
+2026-02-02 10:38:45,214 [INFO] utils.trades:   > Realized: Entry $137.00 | Exit $-0.00 | Comms $0.67 | P&L $137.00 | Status: Rolled
+2026-02-02 10:38:45,216 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:45,217 [INFO] utils.trades: Initial Baseline: -3,384.40
+2026-02-02 10:38:45,218 [INFO] utils.trades: Total Realized Cash: 67.71
+2026-02-02 10:38:45,220 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:45,220 [INFO] utils.trades: Final True P&L: 67.71
+2026-02-02 10:38:45,221 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:45,225 [INFO] utils.trades: LEG ID: 78 | NVO 20260320 50.0Call | Qty: 2
+2026-02-02 10:38:45,226 [INFO] utils.trades:   > Realized: Entry $-1,540.00 | Exit $2,050.00 | Comms $2.81 | P&L $510.00 | Status: Closed
+2026-02-02 10:38:45,229 [INFO] utils.trades: LEG ID: 79 | NVO 20260320 45.0Put | Qty: -2
+2026-02-02 10:38:45,232 [INFO] utils.trades:   > Realized: Entry $762.00 | Exit $-78.00 | Comms $2.81 | P&L $684.00 | Status: Closed
+2026-02-02 10:38:45,234 [INFO] utils.trades: LEG ID: 80 | NVO 20260320 40.0Put | Qty: 2
+2026-02-02 10:38:45,234 [INFO] utils.trades:   > Realized: Entry $-426.00 | Exit $28.00 | Comms $2.81 | P&L $-398.00 | Status: Closed
+2026-02-02 10:38:45,235 [INFO] utils.trades: LEG ID: 81 | NVO 20251003 60.0Call | Qty: -1
+2026-02-02 10:38:45,236 [INFO] utils.trades:   > Realized: Entry $100.00 | Exit $-12.00 | Comms $1.77 | P&L $88.00 | Status: Rolled
+2026-02-02 10:38:45,236 [INFO] utils.trades: LEG ID: 82 | NVO 20251017 62.0Call | Qty: -1
+2026-02-02 10:38:45,237 [INFO] utils.trades:   > Realized: Entry $68.00 | Exit $-136.00 | Comms $2.05 | P&L $-68.00 | Status: Rolled
+2026-02-02 10:38:45,238 [INFO] utils.trades: LEG ID: 83 | NVO 20251017 65.0Call | Qty: -2
+2026-02-02 10:38:45,239 [INFO] utils.trades:   > Realized: Entry $142.00 | Exit $-12.00 | Comms $2.75 | P&L $130.00 | Status: Rolled
+2026-02-02 10:38:45,240 [INFO] utils.trades: LEG ID: 84 | NVO 20251031 65.0Call | Qty: -2
+2026-02-02 10:38:45,240 [INFO] utils.trades:   > Realized: Entry $104.00 | Exit $-0.00 | Comms $0.70 | P&L $104.00 | Status: Rolled
+2026-02-02 10:38:45,241 [INFO] utils.trades: LEG ID: 85 | NVO 20251128 53.0Call | Qty: -2
+2026-02-02 10:38:45,242 [INFO] utils.trades:   > Realized: Entry $212.00 | Exit $-2.00 | Comms $2.39 | P&L $210.00 | Status: Rolled
+2026-02-02 10:38:45,243 [INFO] utils.trades: LEG ID: 86 | NVO 20251205 53.0Call | Qty: -2
+2026-02-02 10:38:45,245 [INFO] utils.trades:   > Realized: Entry $30.00 | Exit $-0.00 | Comms $0.70 | P&L $30.00 | Status: Rolled
+2026-02-02 10:38:45,246 [INFO] utils.trades: LEG ID: 87 | NVO 20260102 55.0Call | Qty: -2
+2026-02-02 10:38:45,247 [INFO] utils.trades:   > Realized: Entry $100.00 | Exit $-6.00 | Comms $3.32 | P&L $94.00 | Status: Rolled
+2026-02-02 10:38:45,248 [INFO] utils.trades: LEG ID: 88 | NVO 20260123 55.0Call | Qty: -2
+2026-02-02 10:38:45,249 [INFO] utils.trades:   > Realized: Entry $138.00 | Exit $-1,724.00 | Comms $2.04 | P&L $-1,586.00 | Status: Rolled
+2026-02-02 10:38:45,250 [INFO] utils.trades: LEG ID: 89 | NVO 20260206 55.0Call | Qty: -2
+2026-02-02 10:38:45,251 [INFO] utils.trades:   > Realized: Entry $1,816.00 | Exit $-1,660.00 | Comms $2.11 | P&L $156.00 | Status: Rolled
+2026-02-02 10:38:45,251 [INFO] utils.trades: LEG ID: 94 | NVO 20260213 58.0Call | Qty: -2
+2026-02-02 10:38:45,252 [INFO] utils.trades:   > Realized: Entry $1,236.00 | Exit $-682.00 | Comms $2.80 | P&L $554.00 | Status: Closed
+2026-02-02 10:38:45,253 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:45,254 [INFO] utils.trades: Initial Baseline: -1,108.95
+2026-02-02 10:38:45,254 [INFO] utils.trades: Total Realized Cash: 478.94
+2026-02-02 10:38:45,255 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:45,256 [INFO] utils.trades: Final True P&L: 478.94
+2026-02-02 10:38:45,256 [INFO] utils.trades: --- DEBUG END ---
+
+2026-02-02 10:38:45,260 [INFO] utils.trades: LEG ID: 90 | SNDK 20260130 420.0Put | Qty: -5
+2026-02-02 10:38:45,261 [INFO] utils.trades:   > Realized: Entry $3,935.00 | Exit $-3,935.00 | Comms $7.03 | P&L $0.00 | Status: Closed
+2026-02-02 10:38:45,264 [INFO] utils.trades: LEG ID: 91 | SNDK 20260130 410.0Put | Qty: 5
+2026-02-02 10:38:45,265 [INFO] utils.trades:   > Realized: Entry $-2,970.00 | Exit $2,970.00 | Comms $7.03 | P&L $0.00 | Status: Closed
+2026-02-02 10:38:45,265 [INFO] utils.trades: --- SUMMARY ---
+2026-02-02 10:38:45,266 [INFO] utils.trades: Initial Baseline: 957.97
+2026-02-02 10:38:45,267 [INFO] utils.trades: Total Realized Cash: -14.06
+2026-02-02 10:38:45,268 [INFO] utils.trades: Total Unrealized P&L: 0.00
+2026-02-02 10:38:45,268 [INFO] utils.trades: Final True P&L: -14.06
+2026-02-02 10:38:45,269 [INFO] utils.trades: --- DEBUG END ---
+

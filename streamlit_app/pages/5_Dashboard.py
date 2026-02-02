@@ -22,6 +22,11 @@ import altair as alt
 import pandas_market_calendars as mcal 
 from utils.market_clock import show_market_clock
 
+from db.models import engine
+
+# This will show you exactly which file the app is touching
+st.sidebar.error(f"App is using DB at: {os.path.abspath('trading_app.db')}")
+
 nyse = mcal.get_calendar("NYSE")
 
 @st.cache_data(ttl=60)
@@ -421,7 +426,7 @@ def show_trades_for_date(df, selected_date):
 
     # You can customize this to your preferred layout
     # Formatting for display
-    display_df = day_df[["symbol", "strategy_name", "pnl"]].copy()
+    display_df = day_df[["symbol", "strategy_name", "pnl", "exit_dt"]].copy()
     display_df["pnl"] = display_df["pnl"].map("${:,.2f}".format)
     
     st.dataframe(display_df)
