@@ -28,7 +28,6 @@ if os.path.exists(db_path):
     st.sidebar.info(f"DB Last Updated: {last_mod}")
 else:
     st.sidebar.error("Database file not found!")
-Your Mantra
 
 def check_password():
     """Returns True if the user entered the correct password."""
